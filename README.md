@@ -2,7 +2,7 @@
 
 ![Python Version](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
-[![Documentation Status](https://readthedocs.org/projects/pykosmos-spec-ai/badge/?version=latest)](https://pykosmos-spec-ai.readthedocs.io/en/latest/)
+[![Documentation Status](https://readthedocs.org/projects/pykosmospp/badge/?version=latest)](https://pykosmospp.readthedocs.io/en/latest/)
 [![Code Coverage](https://img.shields.io/badge/coverage-86%25-brightgreen.svg)](https://github.com/gkhullar/pykosmos_spec_ai)
 
 My attempts at using a Spec-Driven Development Framework with LLMs to test and augment pyKOSMOS, the spectroscopic reduction pipeline for the optical spectrograph KOSMOS at the 3.5m telescope at APO. Built upon the foundation of [**pyKOSMOS**](https://github.com/jradavenport/pykosmos) (by James Davenport, UWashington).
