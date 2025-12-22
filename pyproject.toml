@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pykosmos-spec-ai"
+name = "pykosmospp"
 version = "0.1.0"
 description = "APO-KOSMOS Galaxy Spectroscopy Reduction Pipeline"
 readme = "README.md"
@@ -38,15 +38,20 @@ dev = [
     "pytest-astropy>=0.10",
     "pytest-cov>=4.0",
 ]
+docs = [
+    "sphinx>=5.0",
+    "sphinx-rtd-theme>=1.2",
+    "sphinx-autodoc-typehints>=1.23",
+]
 
 [project.scripts]
-kosmos-reduce = "pykosmos_spec_ai.cli:main"
+kosmos-reduce = "pykosmospp.cli:main"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.setuptools]
+packages = ["pykosmospp"]
 
 [tool.setuptools.package-dir]
-pykosmos_spec_ai = "src"
+pykosmospp = "src"
 
 [tool.pytest.ini_options]
 minversion = "7.0"

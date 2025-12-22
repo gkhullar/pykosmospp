@@ -243,7 +243,7 @@ Ensure you're in the correct Python environment:
 .. code-block:: bash
 
     which python  # Should point to venv or conda environment
-    pip list | grep pykosmos  # Should show pykosmos-spec-ai
+    pip list | grep pykosmos  # Should show pykosmospp
 
 **Compilation Errors for scipy/numpy**
 
@@ -310,7 +310,7 @@ Uninstalling
 .. code-block:: bash
 
     # Remove package
-    pip uninstall pykosmos-spec-ai
+    pip uninstall pykosmospp
 
     # Remove conda environment (if used)
     conda deactivate

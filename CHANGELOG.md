@@ -130,4 +130,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[0.1.0]: https://github.com/apo-kosmos/pykosmos-spec-ai/releases/tag/v0.1.0
+[0.1.0]: https://github.com/gkhullar/pykosmospp/releases/tag/v0.1.0

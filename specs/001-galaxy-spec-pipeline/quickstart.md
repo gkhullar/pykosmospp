@@ -648,5 +648,5 @@ echo "Batch processing complete"
 ## Support
 
 - **Issues**: Report bugs at [GitHub Issues](https://github.com/your-repo/pykosmos_spec_ai/issues)
-- **Documentation**: Full docs at [Read the Docs](https://pykosmos-spec-ai.readthedocs.io)
+- **Documentation**: Full docs at [Read the Docs](https://pykosmospp.readthedocs.io)
 - **Examples**: Jupyter notebooks at [pykosmos-notebooks](https://github.com/jradavenport/pykosmos-notebooks)
