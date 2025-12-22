@@ -600,6 +600,17 @@ Generate synthetic KOSMOS FITS files for testing.
 **Returns:**
 - **dict**: Paths to generated files by type
 
+**Notes:**
+- **KOSMOS Format Matching**: The synthetic data generator produces FITS files that exactly match real KOSMOS observatory data:
+  * **Shape:** (2148, 4096) pixels - spatial × spectral (FITS standard)
+  * **Data type:** int32 (matching KOSMOS detector)
+  * **Bias level:** ~3346 ADU (from real data mean)
+  * **Read noise:** ~18.2 ADU (from real data std)
+  * **Saturation:** 262143 ADU (18-bit detector)
+  * **Headers:** Complete APO/KOSMOS metadata (OBSERVAT, LATITUDE, LONGITUD, TELAZ, TELALT, LST, WCS keywords)
+  * **IMAGETYP values:** 'Bias', 'Comp', 'Object' (capitalized, matching real data)
+- This ensures tests are reproducible without requiring real observatory data files
+
 **Example:**
 ```python
 from tests.fixtures.synthetic_data import generate_test_dataset
