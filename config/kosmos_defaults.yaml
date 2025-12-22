@@ -1,0 +1,174 @@
+# ============================================================================
+# KOSMOS Spectroscopy Pipeline Configuration
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Detector Properties (KOSMOS CCD Specifications)
+# ----------------------------------------------------------------------------
+detector:
+  # CCD gain in electrons per ADU
+  # Source: KOSMOS instrument manual
+  gain: 1.4  # e-/ADU
+  unit_gain: "electron / adu"
+
+  # Read noise in electrons (RMS)
+  # Source: KOSMOS instrument manual
+  readnoise: 3.7  # e-
+  unit_readnoise: "electron"
+
+  # Saturation level in ADU (90% of 16-bit max = 65535)
+  # Provides safety margin for non-linear regime
+  saturate: 58982  # ADU
+  unit_saturate: "adu"
+
+  # Spatial pixel scale in arcseconds per pixel
+  # Source: KOSMOS slit scale (0.29"/pixel)
+  pixel_scale: 0.29  # arcsec/pixel
+  unit_pixel_scale: "arcsecond / pixel"
+
+  # Detector dimensions (pixels)
+  # KOSMOS CCD: 2048 (spatial) x 4096 (spectral)
+  n_spatial: 2048
+  n_spectral: 4096
+
+# ----------------------------------------------------------------------------
+# Calibration Settings
+# ----------------------------------------------------------------------------
+calibration:
+  # Bias frame combination
+  bias:
+    combine_method: "median"  # Options: median, mean
+    sigma_clip: 3.0
+    min_frames: 5
+    max_level_variation: 10.0
+
+  # Flat field combination and normalization
+  flat:
+    combine_method: "median"  # Options: median, mean
+    sigma_clip: 3.0
+    min_frames: 3
+    expected_counts_min: 10000
+    expected_counts_max: 50000
+    normalization_region: [0.25, 0.75, 0.25, 0.75]
+    max_bad_pixel_fraction: 0.05
+
+  # Cosmic ray detection
+  cosmic_rays:
+    enabled: true
+    sigma_clip: 5.0
+    contrast: 3.0
+    max_iterations: 5
+
+# ----------------------------------------------------------------------------
+# Trace Detection
+# ----------------------------------------------------------------------------
+trace_detection:
+  min_snr: 3.0
+  expected_fwhm: 5.0
+  max_traces: 10
+  kernel_sigma: 2.1  # pixels (for FWHM=5)
+  min_separation: 20
+  prominence: 0.5
+
+# ----------------------------------------------------------------------------
+# Spatial Profile Fitting
+# ----------------------------------------------------------------------------
+spatial_profile:
+  profile_type: "Gaussian"  # Options: Gaussian, Moffat, Empirical
+  chi_sq_threshold: 10.0
+  exclude_emission_lines: true
+  emission_lines:
+    gradient_threshold: 5.0
+    mask_width: 10
+  gaussian:
+    sigma_min: 0.5
+    sigma_max: 20.0
+    center_offset_max: 10.0
+
+# ----------------------------------------------------------------------------
+# Spectral Extraction
+# ----------------------------------------------------------------------------
+extraction:
+  method: "optimal"  # Options: optimal (Horne 1986), boxcar
+  aperture_width: 10
+  sky:
+    enabled: true
+    buffer: 30
+    width: 50
+    sigma_clip: 3.0
+    method: "median"
+  variance:
+    include_readnoise: true
+    include_poisson: true
+    min_variance: 1.0
+
+# ----------------------------------------------------------------------------
+# Wavelength Calibration
+# ----------------------------------------------------------------------------
+wavelength:
+  lamp_type: "auto"  # Options: auto, henear, argon, krypton, thar, cuar
+  poly_type: "chebyshev"  # Options: chebyshev, legendre, polynomial
+  poly_order: 5
+  rms_threshold: 0.1  # Angstroms
+  min_lines: 20
+  sigma_clip: 3.0
+  max_iterations: 5
+  line_identification:
+    wavelength_range: [3500, 7500]  # Angstroms
+    detection_threshold: 5.0
+    match_tolerance: 2.0
+  bic:
+    enabled: true
+    max_order: 7
+    min_order: 3
+
+# ----------------------------------------------------------------------------
+# Binning
+# ----------------------------------------------------------------------------
+binning:
+  spatial:
+    enabled: false
+    factor: 2
+    method: "sum"
+  spectral:
+    enabled: false
+    width_angstrom: 2.0
+    method: "sum"
+
+# ----------------------------------------------------------------------------
+# AB Subtraction (Nod-Dither Pairs)
+# ----------------------------------------------------------------------------
+ab_subtraction:
+  enabled: true
+  iterative:
+    max_iterations: 5
+    convergence_threshold: 0.01
+    sigma_clip: 3.0
+  alignment:
+    enabled: true
+    max_shift_spatial: 10
+    max_shift_spectral: 5
+  pairing:
+    match_by_time: true
+    max_time_diff: 600  # seconds (10 minutes)
+
+# ----------------------------------------------------------------------------
+# Quality Assessment
+# ----------------------------------------------------------------------------
+quality:
+  min_snr: 3.0
+  max_wavelength_rms: 0.1
+  max_cosmic_ray_fraction: 0.01
+  flux_conservation_tolerance: 0.05  # 5%
+
+# ----------------------------------------------------------------------------
+# Flux Calibration (Optional)
+# ----------------------------------------------------------------------------
+flux_calibration:
+  extinction:
+    enabled: false
+    extinction_file: "resources/pykosmos_reference/extinction/apoextinct.dat"
+  sensitivity:
+    enabled: false
+    standard_star_file: null  # Path to standard star observation
+    onedstds_dir: "resources/pykosmos_reference/onedstds/"

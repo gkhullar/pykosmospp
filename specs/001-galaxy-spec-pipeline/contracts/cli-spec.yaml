@@ -1,0 +1,489 @@
+# CLI Specification
+
+**Feature**: 001-galaxy-spec-pipeline  
+**Date**: 2025-12-22  
+**Purpose**: Command-line interface design for KOSMOS spectroscopy pipeline
+
+## Overview
+
+The `kosmos-reduce` CLI provides a unified interface for processing KOSMOS long-slit spectroscopy data from raw frames to wavelength-calibrated 1D spectra. Supports both interactive (user confirms traces) and batch modes.
+
+---
+
+## Main Command
+
+### `kosmos-reduce`
+
+**Description**: Process KOSMOS spectroscopy observations from raw data to extracted 1D spectra.
+
+**Usage**:
+
+```bash
+kosmos-reduce --input-dir <path> [OPTIONS]
+```
+
+**Required Arguments**:
+
+| Argument | Type | Description |
+| -------- | ---- | ----------- |
+| `--input-dir PATH` | Path | Directory containing raw FITS files (biases/, flats/, arcs/, science/) |
+
+**Optional Arguments**:
+
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+| `--output-dir PATH` | Path | `./reduced/` | Directory for output products |
+| `--config PATH` | Path | `config/kosmos_defaults.yaml` | YAML configuration file |
+| `--mode {interactive,batch}` | str | `interactive` | Processing mode: interactive (user selects traces) or batch (auto-select all) |
+| `--verbose / --quiet` | flag | `--verbose` | Control logging verbosity |
+| `--log-file PATH` | Path | `<output-dir>/pipeline.log` | Path to log file |
+| `--validate-only` | flag | False | Validate inputs without processing |
+| `--overwrite` | flag | False | Overwrite existing output files |
+| `--max-traces INT` | int | 10 | Maximum number of traces to detect per 2D spectrum |
+
+**Examples**:
+
+```bash
+# Interactive reduction (default)
+kosmos-reduce --input-dir /data/2024-01-15/galaxy_NGC1234/ \
+              --output-dir /data/2024-01-15/reduced_NGC1234/
+
+# Batch mode (auto-select all traces)
+kosmos-reduce --input-dir /data/2024-01-15/galaxy_NGC1234/ \
+              --mode batch \
+              --output-dir /data/2024-01-15/reduced_NGC1234/
+
+# Custom config and verbose logging
+kosmos-reduce --input-dir /data/2024-01-15/galaxy_NGC1234/ \
+              --config my_kosmos_config.yaml \
+              --verbose \
+              --log-file debug.log
+
+# Validate inputs only (dry run)
+kosmos-reduce --input-dir /data/2024-01-15/galaxy_NGC1234/ \
+              --validate-only
+```
+
+**Exit Codes**:
+
+| Code | Meaning |
+| ---- | ------- |
+| 0 | Success |
+| 1 | Missing required calibrations (bias, flat, or arc) |
+| 2 | Invalid FITS files or configuration |
+| 3 | Wavelength solution failed (RMS > 0.1 Å) |
+| 4 | No traces detected in science frames |
+| 5 | User canceled interactive selection |
+
+---
+
+## Subcommands
+
+### `kosmos-reduce calibrate`
+
+**Description**: Generate master calibration frames only (bias, flat, bad pixel mask).
+
+**Usage**:
+
+```bash
+kosmos-reduce calibrate --input-dir <path> [OPTIONS]
+```
+
+**Arguments**:
+
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+| `--input-dir PATH` | Path | (required) | Directory with bias/ and flat/ subdirectories |
+| `--output-dir PATH` | Path | `./calibrations/` | Output directory for master frames |
+| `--min-bias INT` | int | 5 | Minimum number of bias frames required |
+| `--min-flat INT` | int | 3 | Minimum number of flat frames required |
+| `--saturation-threshold FLOAT` | float | 58982 | Saturation level in ADU |
+
+**Output Files**:
+
+- `master_bias.fits`: Combined bias frame (CCDData)
+- `master_flat.fits`: Normalized flat field (CCDData)
+- `bad_pixel_mask.fits`: Boolean mask of bad/dead/hot pixels
+- `calibration_summary.txt`: Report with bias level, flat statistics, etc.
+
+**Examples**:
+
+```bash
+# Generate master calibrations
+kosmos-reduce calibrate --input-dir /data/2024-01-15/calibs/ \
+                        --output-dir /data/2024-01-15/masters/
+
+# Require at least 10 bias frames
+kosmos-reduce calibrate --input-dir /data/2024-01-15/calibs/ \
+                        --min-bias 10
+```
+
+---
+
+### `kosmos-reduce extract`
+
+**Description**: Extract 1D spectra from pre-calibrated 2D spectra (assumes calibrations already applied).
+
+**Usage**:
+
+```bash
+kosmos-reduce extract --input-2d <path> --wavelength-solution <path> [OPTIONS]
+```
+
+**Arguments**:
+
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+| `--input-2d PATH` | Path | (required) | Calibrated 2D spectrum FITS file |
+| `--wavelength-solution PATH` | Path | (required) | Wavelength solution FITS file (from arc) |
+| `--output-dir PATH` | Path | `./spectra_1d/` | Output directory for 1D spectra |
+| `--extraction-width INT` | int | 10 | Half-width of extraction aperture (pixels) |
+| `--method {optimal,boxcar}` | str | `optimal` | Extraction method |
+| `--sky-subtract` | flag | True | Perform sky subtraction |
+| `--sky-buffer INT` | int | 30 | Pixels from trace for sky regions |
+
+**Output Files**:
+
+- `spectrum_1d_trace<N>.fits`: Extracted Spectrum1D (specutils format)
+- `extraction_profile_trace<N>.pdf`: LaTeX-styled plot of spatial profile fit
+- `sky_subtraction_trace<N>.pdf`: Sky regions and residuals plot
+
+**Examples**:
+
+```bash
+# Extract with optimal weighting
+kosmos-reduce extract --input-2d spectrum_2d_calibrated.fits \
+                      --wavelength-solution arc_wavelength_solution.fits \
+                      --method optimal
+
+# Extract with boxcar (no profile weighting)
+kosmos-reduce extract --input-2d spectrum_2d_calibrated.fits \
+                      --wavelength-solution arc_wavelength_solution.fits \
+                      --method boxcar \
+                      --extraction-width 15
+```
+
+---
+
+### `kosmos-reduce wavelength`
+
+**Description**: Fit wavelength solution from arc lamp spectrum.
+
+**Usage**:
+
+```bash
+kosmos-reduce wavelength --input-arc <path> [OPTIONS]
+```
+
+**Arguments**:
+
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+| `--input-arc PATH` | Path | (required) | Arc lamp 2D spectrum FITS file |
+| `--output PATH` | Path | `wavelength_solution.fits` | Output wavelength solution file |
+| `--lamp-type {auto,henear,argon,krypton,thar,cuar}` | str | `auto` | Arc lamp type (auto-detect from filename/header) |
+| `--poly-order INT` | int | 5 | Polynomial order for wavelength fit |
+| `--rms-threshold FLOAT` | float | 0.1 | Maximum RMS residual (Angstroms) |
+| `--min-lines INT` | int | 20 | Minimum arc lines required for fit |
+| `--plot` | flag | True | Generate diagnostic plots |
+
+**Output Files**:
+
+- `wavelength_solution.fits`: Chebyshev polynomial coefficients (FITS table)
+- `wavelength_fit.pdf`: LaTeX-styled plot of fit and residuals
+- `identified_lines.txt`: Table of identified arc lines (pixel, wavelength, residual)
+
+**Examples**:
+
+```bash
+# Auto-detect lamp type from filename
+kosmos-reduce wavelength --input-arc arc_henear_001.fits
+
+# Manually specify lamp type and stricter RMS
+kosmos-reduce wavelength --input-arc arc_001.fits \
+                         --lamp-type argon \
+                         --rms-threshold 0.05
+
+# Use higher polynomial order for high dispersion
+kosmos-reduce wavelength --input-arc arc_henear_001.fits \
+                         --poly-order 7
+```
+
+---
+
+### `kosmos-reduce combine`
+
+**Description**: Combine multiple 1D spectra (e.g., from different exposures or AB pairs).
+
+**Usage**:
+
+```bash
+kosmos-reduce combine --input-spectra <paths> [OPTIONS]
+```
+
+**Arguments**:
+
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+| `--input-spectra PATH [PATH ...]` | List[Path] | (required) | 1D spectrum FITS files to combine |
+| `--output PATH` | Path | `combined_spectrum.fits` | Output combined spectrum |
+| `--method {median,mean,weighted}` | str | `median` | Combining method |
+| `--wavelength-grid {linear,log}` | str | `linear` | Output wavelength grid type |
+| `--resolution FLOAT` | float | 2.0 | Spectral resolution (Angstroms per pixel) |
+
+**Output Files**:
+
+- `combined_spectrum.fits`: Combined Spectrum1D (specutils format)
+- `combination_summary.txt`: Report with input spectra, weights, RMS scatter
+
+**Examples**:
+
+```bash
+# Median combine multiple exposures
+kosmos-reduce combine --input-spectra spec1.fits spec2.fits spec3.fits \
+                      --output median_combined.fits \
+                      --method median
+
+# Weighted mean combine with linear wavelength grid
+kosmos-reduce combine --input-spectra spec1.fits spec2.fits \
+                      --method weighted \
+                      --wavelength-grid linear \
+                      --resolution 1.5
+```
+
+---
+
+## Configuration File Format
+
+The `--config` option accepts a YAML file following this schema (see [config-schema.yaml](./config-schema.yaml)):
+
+```yaml
+# KOSMOS detector properties
+detector:
+  gain: 1.4  # e-/ADU
+  readnoise: 3.7  # e-
+  saturate: 58982  # ADU (90% of 16-bit max)
+  pixel_scale: 0.29  # arcsec/pixel (spatial)
+
+# Trace detection
+trace_detection:
+  min_snr: 3.0  # Minimum SNR for trace detection
+  expected_fwhm: 5.0  # Expected trace FWHM (pixels)
+  max_traces: 10  # Maximum traces to detect per frame
+
+# Spatial profile fitting
+spatial_profile:
+  profile_type: Gaussian  # Gaussian, Moffat, or Empirical
+  chi_sq_threshold: 10.0  # Fallback to empirical if χ² > threshold
+  exclude_emission_lines: true  # Mask emission lines from profile fit
+
+# Extraction
+extraction:
+  method: optimal  # optimal (Horne) or boxcar
+  aperture_width: 10  # Half-width (pixels)
+  sky_buffer: 30  # Pixels from trace for sky regions
+  sky_sigma_clip: 3.0  # Sigma-clipping threshold for sky
+
+# Wavelength calibration
+wavelength:
+  poly_order: 5  # Chebyshev polynomial order
+  rms_threshold: 0.1  # Maximum RMS residual (Angstroms)
+  min_lines: 20  # Minimum arc lines for fit
+  sigma_clip: 3.0  # Outlier rejection threshold
+
+# Binning
+binning:
+  spatial_enabled: false
+  spatial_factor: 2  # Bin 2 pixels -> 1
+  spectral_enabled: false
+  spectral_width: 2.0  # Angstroms per bin
+
+# AB subtraction
+ab_subtraction:
+  enabled: true
+  max_iterations: 5
+  convergence_threshold: 0.01  # RMS change for convergence
+
+# Quality thresholds
+quality:
+  min_snr: 3.0  # Minimum median SNR for acceptable spectrum
+  max_wavelength_rms: 0.1  # Angstroms
+  max_cosmic_ray_fraction: 0.01  # Fraction of pixels flagged
+
+# Output
+output:
+  save_intermediate: true  # Save 2D calibrated frames
+  save_diagnostic_plots: true  # Generate LaTeX plots
+  plot_format: pdf  # pdf, png, or svg
+  fits_compression: true  # Compress output FITS files
+```
+
+---
+
+## Interactive Mode Workflow
+
+When `--mode interactive` (default):
+
+1. **Calibration**: Automatically generate master bias/flat
+2. **Preprocessing**: Apply calibrations to science frames
+3. **Trace Detection**: Find all traces with SNR > threshold
+4. **Interactive Viewer**: Display matplotlib window with:
+   - 2D spectrum (log-scale colormap)
+   - Detected traces overlaid as colored lines
+   - Spatial profile plot
+   - Checkboxes to select/deselect traces
+   - "Accept" button to proceed
+5. **User Selection**: User checks desired traces, clicks "Accept"
+6. **Extraction**: Process only selected traces
+7. **Wavelength Calibration**: Apply wavelength solution
+8. **Output**: Save 1D spectra, plots, logs
+
+**Interactive Viewer Controls**:
+
+- **Checkboxes**: Toggle individual traces on/off
+- **Accept Button**: Proceed with selected traces
+- **Cancel Button**: Abort reduction (exit code 5)
+- **Pan/Zoom**: Standard matplotlib navigation toolbar
+
+---
+
+## Batch Mode Workflow
+
+When `--mode batch`:
+
+1. All steps same as interactive mode
+2. **Auto-Select**: All detected traces automatically selected (no user input)
+3. **Non-Blocking**: No matplotlib windows displayed
+4. **Faster**: Suitable for automated pipelines
+
+---
+
+## Logging
+
+**Log Levels**:
+
+- `--verbose`: INFO level (all processing steps logged)
+- `--quiet`: WARNING level (only warnings and errors)
+
+**Log Format**:
+
+```
+[2024-01-15 22:35:12] INFO: Loading configuration from config/kosmos_defaults.yaml
+[2024-01-15 22:35:13] INFO: Discovered 7 bias frames, 5 flat frames, 2 arc frames, 3 science frames
+[2024-01-15 22:35:15] INFO: Generated master bias (median of 7 frames, bias level: 412.3 ADU)
+[2024-01-15 22:35:18] INFO: Generated master flat (median of 5 frames, normalized to 1.0)
+[2024-01-15 22:35:22] INFO: Detected 2 traces in science_001.fits (SNR: 8.2, 4.5)
+[2024-01-15 22:35:25] INFO: Wavelength solution fit: order=5, RMS=0.068 Å, 32 lines
+[2024-01-15 22:35:30] INFO: Extracted trace 1 (optimal extraction, SNR=8.2)
+[2024-01-15 22:35:35] INFO: Saved spectrum_1d_trace1.fits
+[2024-01-15 22:35:36] INFO: Pipeline completed successfully
+```
+
+---
+
+## Input Directory Structure
+
+Expected directory layout for `--input-dir`:
+
+```
+input-dir/
+├── biases/
+│   ├── bias_001.fits
+│   ├── bias_002.fits
+│   └── ...
+├── flats/
+│   ├── flat_001.fits
+│   ├── flat_002.fits
+│   └── ...
+├── arcs/
+│   ├── arc_henear_001.fits
+│   └── ...
+└── science/
+    ├── galaxy_NGC1234_001.fits
+    ├── galaxy_NGC1234_002.fits
+    └── ...
+```
+
+**Flexible Alternative**: All FITS files in one directory (pipeline auto-classifies by header `IMAGETYP` keyword: 'bias', 'flat', 'arc', 'object')
+
+---
+
+## Output Directory Structure
+
+Generated by pipeline in `--output-dir`:
+
+```
+output-dir/
+├── calibrations/
+│   ├── master_bias.fits
+│   ├── master_flat.fits
+│   ├── bad_pixel_mask.fits
+│   └── calibration_summary.txt
+├── reduced_2d/
+│   ├── science_001_calibrated.fits
+│   └── ...
+├── spectra_1d/
+│   ├── spectrum_1d_trace1.fits
+│   ├── spectrum_1d_trace2.fits
+│   └── ...
+├── wavelength_solutions/
+│   ├── arc_henear_001_wavelength_solution.fits
+│   └── identified_lines.txt
+├── plots/
+│   ├── 2d_spectrum_science_001.pdf
+│   ├── traces_science_001.pdf
+│   ├── wavelength_fit.pdf
+│   ├── extraction_profile_trace1.pdf
+│   └── ...
+└── logs/
+    ├── pipeline.log
+    └── quality_report.txt
+```
+
+---
+
+## Integration with Python API
+
+CLI wraps Python API for programmatic use:
+
+```python
+from kosmos_pipeline import PipelineRunner, PipelineConfig
+
+# Load config
+config = PipelineConfig.from_yaml("config/kosmos_defaults.yaml")
+
+# Run pipeline
+runner = PipelineRunner(
+    input_dir="/data/2024-01-15/galaxy_NGC1234/",
+    output_dir="/data/2024-01-15/reduced_NGC1234/",
+    config=config,
+    mode="interactive"
+)
+results = runner.run()
+
+# Access results
+for spectrum in results.spectra_1d:
+    print(f"Trace {spectrum.trace_id}: SNR={spectrum.quality_metrics.median_snr:.1f}")
+```
+
+---
+
+## Error Handling
+
+**Graceful Degradation**:
+
+- Missing optional calibrations (e.g., no flats): warn and skip flat correction
+- Wavelength fit fails: retry with lower polynomial order, else exit code 3
+- No traces detected: warn, allow manual trace specification via config, else exit code 4
+
+**User Notifications**:
+
+- All errors printed to stderr with actionable suggestions
+- Example: `ERROR: Wavelength RMS 0.15 Å exceeds threshold 0.1 Å. Try increasing --poly-order or checking arc lamp exposure.`
+
+---
+
+## Next Steps
+
+- See [config-schema.yaml](./config-schema.yaml) for full configuration options
+- See [quickstart.md](../quickstart.md) for usage examples with test data

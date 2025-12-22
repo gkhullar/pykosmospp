@@ -1,0 +1,599 @@
+# Configuration Schema for KOSMOS Pipeline
+
+**Feature**: 001-galaxy-spec-pipeline  
+**Date**: 2025-12-22  
+**Purpose**: YAML configuration schema with defaults for KOSMOS spectroscopy pipeline
+
+---
+
+## Schema Overview
+
+This file defines the complete configuration schema for the KOSMOS pipeline. All parameters have sensible defaults for typical KOSMOS observations at APO 3.5m. Users can override any parameter in their custom YAML config file.
+
+---
+
+## Full Configuration (kosmos_defaults.yaml)
+
+```yaml
+# ============================================================================
+# KOSMOS Spectroscopy Pipeline Configuration
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Detector Properties (KOSMOS CCD Specifications)
+# ----------------------------------------------------------------------------
+detector:
+  # CCD gain in electrons per ADU
+  # Source: KOSMOS instrument manual
+  gain: 1.4  # e-/ADU
+  unit_gain: "electron / adu"
+
+  # Read noise in electrons (RMS)
+  # Source: KOSMOS instrument manual
+  readnoise: 3.7  # e-
+  unit_readnoise: "electron"
+
+  # Saturation level in ADU (90% of 16-bit max = 65535)
+  # Provides safety margin for non-linear regime
+  saturate: 58982  # ADU
+  unit_saturate: "adu"
+
+  # Spatial pixel scale in arcseconds per pixel
+  # Source: KOSMOS slit scale (0.29"/pixel)
+  pixel_scale: 0.29  # arcsec/pixel
+  unit_pixel_scale: "arcsecond / pixel"
+
+  # Detector dimensions (pixels)
+  # KOSMOS CCD: 2048 (spatial) x 4096 (spectral)
+  n_spatial: 2048
+  n_spectral: 4096
+
+# ----------------------------------------------------------------------------
+# Calibration Settings
+# ----------------------------------------------------------------------------
+calibration:
+  # Bias frame combination
+  bias:
+    # Method for combining multiple bias frames
+    combine_method: "median"  # Options: median, mean
+    # Sigma-clipping threshold before combining
+    sigma_clip: 3.0
+    # Minimum number of bias frames required
+    min_frames: 5
+    # Maximum acceptable bias level variation (ADU) across frames
+    max_level_variation: 10.0
+
+  # Flat field combination and normalization
+  flat:
+    # Method for combining multiple flat frames
+    combine_method: "median"  # Options: median, mean
+    # Sigma-clipping threshold before combining
+    sigma_clip: 3.0
+    # Minimum number of flat frames required
+    min_frames: 3
+    # Expected median counts for well-exposed flats (ADU)
+    expected_counts_min: 10000
+    expected_counts_max: 50000
+    # Region for normalization (fraction of detector)
+    # [spatial_start, spatial_end, spectral_start, spectral_end]
+    normalization_region: [0.25, 0.75, 0.25, 0.75]
+    # Maximum fraction of bad pixels acceptable
+    max_bad_pixel_fraction: 0.05
+
+  # Cosmic ray detection
+  cosmic_rays:
+    # Algorithm: lacosmic (van Dokkum 2001)
+    enabled: true
+    # Sigma-clipping threshold for cosmic ray detection
+    sigma_clip: 5.0
+    # Contrast threshold (smaller = more aggressive)
+    contrast: 3.0
+    # Maximum number of iterations
+    max_iterations: 5
+
+# ----------------------------------------------------------------------------
+# Trace Detection
+# ----------------------------------------------------------------------------
+trace_detection:
+  # Minimum SNR for a trace to be detected
+  # Lower values detect fainter sources but increase false positives
+  min_snr: 3.0
+
+  # Expected FWHM of spatial profile (pixels)
+  # Used as template width for cross-correlation
+  # Typical seeing at APO: 1.5-2.5" → 5-9 pixels
+  expected_fwhm: 5.0
+
+  # Maximum number of traces to detect per 2D spectrum
+  # Prevents false positives from noise
+  max_traces: 10
+
+  # Cross-correlation kernel width (sigma of Gaussian)
+  # sigma = FWHM / 2.355
+  kernel_sigma: 2.1  # pixels (for FWHM=5)
+
+  # Minimum separation between traces (pixels)
+  # Prevents duplicate detections
+  min_separation: 20
+
+  # Prominence threshold for peak-finding
+  # scipy.signal.find_peaks parameter
+  prominence: 0.5
+
+# ----------------------------------------------------------------------------
+# Spatial Profile Fitting
+# ----------------------------------------------------------------------------
+spatial_profile:
+  # Profile model type
+  # Options: Gaussian, Moffat, Empirical
+  profile_type: "Gaussian"
+
+  # Chi-squared threshold for fit quality
+  # If χ² > threshold, fall back to empirical profile
+  chi_sq_threshold: 10.0
+
+  # Exclude emission lines from profile fitting
+  # Prevents emission line flux from biasing continuum profile
+  exclude_emission_lines: true
+
+  # Emission line masking parameters
+  emission_lines:
+    # Detect emission lines via gradient threshold
+    gradient_threshold: 5.0  # sigma above continuum gradient
+    # Width to mask around detected emission lines (pixels)
+    mask_width: 10
+
+  # Profile fitting bounds (for Gaussian)
+  gaussian:
+    # Sigma bounds (pixels)
+    sigma_min: 0.5
+    sigma_max: 20.0
+    # Center offset from initial trace position (pixels)
+    center_offset_max: 10.0
+
+# ----------------------------------------------------------------------------
+# Spectral Extraction
+# ----------------------------------------------------------------------------
+extraction:
+  # Extraction method
+  # Options: optimal (Horne 1986), boxcar (simple sum)
+  method: "optimal"
+
+  # Aperture half-width (pixels)
+  # For optimal extraction: defines weighting region
+  # For boxcar: defines summation width
+  aperture_width: 10
+
+  # Sky subtraction settings
+  sky:
+    # Enable sky subtraction
+    enabled: true
+    # Distance from trace center to start sky regions (pixels)
+    buffer: 30
+    # Width of sky regions on each side of trace (pixels)
+    width: 50
+    # Sigma-clipping threshold for sky estimation
+    sigma_clip: 3.0
+    # Method for sky estimation
+    method: "median"  # Options: median, mean, polynomial
+
+  # Variance propagation
+  variance:
+    # Include read noise in variance
+    include_readnoise: true
+    # Include Poisson noise (photon statistics)
+    include_poisson: true
+    # Floor for variance (prevents division by zero)
+    min_variance: 1.0  # (e-)^2
+
+# ----------------------------------------------------------------------------
+# Wavelength Calibration
+# ----------------------------------------------------------------------------
+wavelength:
+  # Arc lamp type (auto-detect from filename/header if "auto")
+  # Options: auto, henear, argon, krypton, thar, cuar
+  lamp_type: "auto"
+
+  # Polynomial type for wavelength solution
+  # Options: chebyshev, legendre, polynomial
+  poly_type: "chebyshev"
+
+  # Polynomial order for wavelength fit
+  # Typical: 3-5 for low dispersion, 5-7 for high dispersion
+  poly_order: 5
+
+  # Maximum RMS residual (Angstroms) for acceptable fit
+  # Requirement from FR-008
+  rms_threshold: 0.1
+
+  # Minimum number of arc lines required for fit
+  min_lines: 20
+
+  # Sigma-clipping threshold for outlier rejection
+  sigma_clip: 3.0
+
+  # Maximum iterations for iterative sigma-clipping fit
+  max_iterations: 5
+
+  # Line identification parameters
+  line_identification:
+    # Initial wavelength range guess (Angstroms)
+    # KOSMOS typical range: 3500-7500 Å (depends on grating)
+    wavelength_range: [3500, 7500]
+    # Peak detection threshold (sigma above continuum)
+    detection_threshold: 5.0
+    # Matching tolerance for line identification (Angstroms)
+    match_tolerance: 2.0
+
+  # Bayesian Information Criterion (BIC) for order selection
+  bic:
+    # Enable automatic order selection via BIC
+    enabled: true
+    # Maximum order to consider
+    max_order: 7
+    # Minimum order to consider
+    min_order: 3
+
+# ----------------------------------------------------------------------------
+# Binning
+# ----------------------------------------------------------------------------
+binning:
+  # Spatial binning (pre-extraction, on 2D spectrum)
+  spatial:
+    # Enable spatial binning
+    enabled: false
+    # Binning factor (e.g., 2 = bin 2 pixels → 1)
+    factor: 2
+    # Combine method
+    method: "sum"  # Options: sum, mean
+
+  # Spectral binning (post-extraction, on 1D spectrum)
+  spectral:
+    # Enable spectral binning
+    enabled: false
+    # Bin width in Angstroms (overrides factor if specified)
+    width_angstrom: 2.0
+    # Combine method (with variance propagation)
+    method: "sum"  # Options: sum, mean
+
+# ----------------------------------------------------------------------------
+# AB Subtraction (Nod-Dither Pairs)
+# ----------------------------------------------------------------------------
+ab_subtraction:
+  # Enable AB subtraction for nod-dither observations
+  enabled: true
+
+  # Iterative sky modeling parameters
+  iterative:
+    # Maximum number of iterations
+    max_iterations: 5
+    # Convergence criterion (fractional RMS change)
+    convergence_threshold: 0.01
+    # Sigma-clipping threshold for sky estimation
+    sigma_clip: 3.0
+
+  # Spatial alignment (if A and B positions misaligned)
+  alignment:
+    # Enable cross-correlation alignment
+    enabled: true
+    # Maximum pixel shift to search (spatial and spectral)
+    max_shift_spatial: 10
+    max_shift_spectral: 5
+
+  # AB pair matching
+  pairing:
+    # Match A-B pairs by observation time (if nod_position not in header)
+    match_by_time: true
+    # Maximum time difference (seconds) to consider as pair
+    max_time_diff: 600  # 10 minutes
+
+# ----------------------------------------------------------------------------
+# Quality Assessment
+# ----------------------------------------------------------------------------
+quality:
+  # Minimum median SNR for acceptable spectrum
+  min_snr: 3.0
+
+  # Maximum wavelength RMS residual (Angstroms)
+  max_wavelength_rms: 0.1
+
+  # Maximum fraction of pixels flagged as cosmic rays
+  max_cosmic_ray_fraction: 0.01
+
+  # Maximum fraction of saturated pixels in extraction aperture
+  max_saturation_fraction: 0.0  # Zero tolerance for saturation
+
+  # Sky subtraction quality threshold
+  # Measured as RMS of sky residuals in sky regions
+  max_sky_residual_rms: 5.0  # e-/s
+
+  # Quality grade thresholds
+  grades:
+    excellent:
+      min_snr: 10.0
+      max_wavelength_rms: 0.05
+      max_saturation_fraction: 0.0
+    good:
+      min_snr: 5.0
+      max_wavelength_rms: 0.1
+      max_saturation_fraction: 0.0
+    fair:
+      min_snr: 3.0
+      max_wavelength_rms: 0.15
+      max_saturation_fraction: 0.01
+    # Below "fair" → "poor"
+
+# ----------------------------------------------------------------------------
+# Flux Calibration (Optional)
+# ----------------------------------------------------------------------------
+flux_calibration:
+  # Enable flux calibration with standard star
+  enabled: false
+
+  # Standard star spectrum file (1D FITS)
+  standard_star_file: null
+
+  # Standard star reference spectrum (literature)
+  standard_reference_file: null
+
+  # Extinction correction
+  extinction:
+    # Enable atmospheric extinction correction
+    enabled: true
+    # Extinction curve file (e.g., apoextinct.dat)
+    extinction_file: "resources/pykosmos_reference/extinction/apoextinct.dat"
+
+  # Telluric correction (advanced)
+  telluric:
+    # Enable telluric absorption correction
+    enabled: false
+    # Telluric standard spectrum file
+    telluric_standard_file: null
+
+# ----------------------------------------------------------------------------
+# Output Settings
+# ----------------------------------------------------------------------------
+output:
+  # Save intermediate products (calibrated 2D frames)
+  save_intermediate: true
+
+  # Generate diagnostic plots
+  save_diagnostic_plots: true
+
+  # Plot format
+  # Options: pdf, png, svg
+  plot_format: "pdf"
+
+  # Plot DPI (for raster formats)
+  plot_dpi: 300
+
+  # Enable LaTeX rendering in matplotlib
+  latex_plots: true
+
+  # FITS compression
+  fits_compression: true
+  compression_type: "RICE_1"  # astropy.io.fits compression
+
+  # Provenance tracking
+  provenance:
+    # Include full processing history in FITS headers
+    include_history: true
+    # Include input file provenance
+    include_input_files: true
+
+  # File naming conventions
+  naming:
+    # Master calibration prefix
+    master_bias: "master_bias"
+    master_flat: "master_flat"
+    # Reduced 2D spectrum suffix
+    reduced_2d_suffix: "_calibrated"
+    # 1D spectrum naming pattern
+    spectrum_1d_pattern: "spectrum_1d_trace{trace_id}"
+    # Wavelength solution naming pattern
+    wavelength_solution_pattern: "{arc_lamp}_wavelength_solution"
+
+# ----------------------------------------------------------------------------
+# Logging
+# ----------------------------------------------------------------------------
+logging:
+  # Log level
+  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+
+  # Log format
+  format: "[%(asctime)s] %(levelname)s: %(message)s"
+
+  # Date format
+  date_format: "%Y-%m-%d %H:%M:%S"
+
+  # Log to file
+  log_to_file: true
+  log_file: "pipeline.log"
+
+  # Log to console
+  log_to_console: true
+
+# ----------------------------------------------------------------------------
+# Performance and Memory
+# ----------------------------------------------------------------------------
+performance:
+  # Number of parallel processes for multi-frame processing
+  # Set to 1 to disable parallelism
+  n_processes: 1
+
+  # Memory limit per process (MB)
+  # Prevents memory overflow for large datasets
+  max_memory_per_process: 4096  # 4 GB
+
+  # Chunk size for processing large FITS files
+  # Process data in chunks to reduce memory usage
+  chunk_size: 1024  # pixels
+
+# ----------------------------------------------------------------------------
+# Interactive Mode Settings
+# ----------------------------------------------------------------------------
+interactive:
+  # Enable interactive trace selection viewer
+  enabled: true
+
+  # Matplotlib backend for interactive plots
+  # Options: Qt5Agg, TkAgg, MacOSX (auto-detect if null)
+  matplotlib_backend: null
+
+  # Colormap for 2D spectrum display
+  colormap: "viridis"
+
+  # Normalization for 2D spectrum display
+  # Options: log, linear, sqrt
+  normalization: "log"
+
+  # Percentile clipping for display (avoids outliers)
+  vmin_percentile: 1
+  vmax_percentile: 99
+
+  # Trace overlay colors (cycle through for multiple traces)
+  trace_colors: ["red", "cyan", "yellow", "magenta", "green", "orange"]
+
+  # Figure size (inches)
+  figure_width: 12
+  figure_height: 8
+
+  # Widget layout
+  checkbox_position: [0.02, 0.4, 0.15, 0.3]  # [left, bottom, width, height]
+  button_accept_position: [0.02, 0.2, 0.15, 0.075]
+  button_cancel_position: [0.02, 0.1, 0.15, 0.075]
+```
+
+---
+
+## Parameter Validation Rules
+
+| Parameter | Type | Constraints | Default |
+| --------- | ---- | ----------- | ------- |
+| `detector.gain` | float | > 0 | 1.4 |
+| `detector.readnoise` | float | > 0 | 3.7 |
+| `detector.saturate` | float | > 0 | 58982 |
+| `calibration.bias.min_frames` | int | ≥ 3 | 5 |
+| `calibration.flat.min_frames` | int | ≥ 1 | 3 |
+| `trace_detection.min_snr` | float | > 0 | 3.0 |
+| `trace_detection.max_traces` | int | > 0 | 10 |
+| `extraction.aperture_width` | int | > 0 | 10 |
+| `wavelength.poly_order` | int | 3-7 | 5 |
+| `wavelength.rms_threshold` | float | > 0 | 0.1 |
+| `wavelength.min_lines` | int | ≥ 10 | 20 |
+| `ab_subtraction.max_iterations` | int | > 0 | 5 |
+| `quality.min_snr` | float | > 0 | 3.0 |
+
+---
+
+## Usage Examples
+
+### Minimal Custom Config (Override Defaults)
+
+```yaml
+# my_config.yaml
+# Only specify parameters to override defaults
+
+trace_detection:
+  min_snr: 5.0  # Stricter trace detection
+
+wavelength:
+  poly_order: 7  # Higher order for high dispersion
+
+extraction:
+  aperture_width: 15  # Wider extraction for extended sources
+
+output:
+  plot_format: "png"  # PNG plots instead of PDF
+```
+
+Command:
+
+```bash
+kosmos-reduce --input-dir /data/galaxy/ --config my_config.yaml
+```
+
+### High SNR Configuration
+
+```yaml
+# high_snr_config.yaml
+# Optimized for bright galaxies
+
+trace_detection:
+  min_snr: 7.0
+
+extraction:
+  method: "boxcar"  # Simpler method sufficient for high SNR
+
+quality:
+  min_snr: 10.0
+
+spatial_profile:
+  exclude_emission_lines: false  # High SNR, emission lines OK
+```
+
+### Faint Object Configuration
+
+```yaml
+# faint_object_config.yaml
+# Optimized for low SNR sources
+
+trace_detection:
+  min_snr: 2.5  # Lower threshold for faint traces
+  expected_fwhm: 7.0  # Wider template for extended sources
+
+extraction:
+  method: "optimal"  # Optimal extraction critical for faint sources
+  aperture_width: 15  # Wider aperture to collect more flux
+
+binning:
+  spatial:
+    enabled: true
+    factor: 2  # Bin 2x to improve SNR
+  spectral:
+    enabled: true
+    width_angstrom: 3.0  # Wider bins for SNR
+
+quality:
+  min_snr: 2.0  # Lower quality threshold
+```
+
+### Batch Processing Configuration
+
+```yaml
+# batch_config.yaml
+# Non-interactive, automated processing
+
+interactive:
+  enabled: false  # Disable interactive viewer
+
+trace_detection:
+  max_traces: 1  # Process only brightest trace
+
+output:
+  save_intermediate: false  # Reduce storage
+  save_diagnostic_plots: false  # Skip plots for speed
+
+logging:
+  level: "WARNING"  # Minimal logging
+```
+
+---
+
+## Environment Variables
+
+Optional environment variables override config file:
+
+| Variable | Description | Example |
+| -------- | ----------- | ------- |
+| `KOSMOS_CONFIG` | Default config file path | `export KOSMOS_CONFIG=~/configs/my_kosmos.yaml` |
+| `KOSMOS_RESOURCES_DIR` | Path to pyKOSMOS resources | `export KOSMOS_RESOURCES_DIR=/data/pykosmos_reference/` |
+| `KOSMOS_EXTINCTION_FILE` | Override extinction curve | `export KOSMOS_EXTINCTION_FILE=/data/apoextinct.dat` |
+
+---
+
+## Next Steps
+
+- See [cli-spec.yaml](./cli-spec.yaml) for command-line usage
+- See [quickstart.md](../quickstart.md) for example workflows with custom configs

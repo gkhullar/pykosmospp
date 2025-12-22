@@ -1,0 +1,11 @@
+# This directory is for KOSMOS FITS data
+# 
+# Expected structure:
+# data/
+# ├── biases/       - Bias frames (*.fits)
+# ├── flats/        - Flat field frames (*.fits)
+# ├── arcs/         - Arc lamp calibration frames (*.fits)
+# └── science/      - Science target frames (*.fits)
+#
+# FITS files are ignored by .gitignore to avoid committing large binary data.
+# Users should populate this directory with their own KOSMOS observations.
