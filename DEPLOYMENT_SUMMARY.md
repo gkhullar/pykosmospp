@@ -4,11 +4,14 @@
 
 All files are ready for GitHub upload. Here's what has been prepared:
 
+**Note:** pyKOSMOS++ extends [pyKOSMOS](https://github.com/jradavenport/pykosmos) by James R. A. Davenport (University of Washington), 
+with key contributions from Francisca Chabour Barra (University of Washington). Proper attributions have been added throughout the documentation.
+
 ### 📝 Documentation Files
 
 1. **README.md** (NEW - Comprehensive GitHub homepage)
    - Professional formatting with badges (Python version, license, docs status)
-   - Project overview with SPEshuLL acronym explanation
+   - Project overview with pyKOSMOS++ branding
    - Key features with emojis and technical highlights
    - Quick start guide with code examples
    - Complete documentation links

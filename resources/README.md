@@ -67,6 +67,11 @@ This PDF serves as the authoritative reference for spectroscopic reduction metho
 
 ## Other References
 
+- **pyKOSMOS**: <https://github.com/jradavenport/pykosmos> - Davenport, J. R. A. et al. (2023). DOI:10.5281/zenodo.10152905
+  - Original longslit spectroscopy reduction package for APO-KOSMOS
+  - Authors: James R. A. Davenport, Francisca Chabour Barra, Azalee Bostroem, Erin Howard (University of Washington)
+- **PyDIS**: <https://github.com/StellarCartography/pydis> - Davenport, J. R. A. (2016). Predecessor to pyKOSMOS
+- **specreduce**: <https://github.com/astropy/specreduce> - Astropy specreduce (inherited methods from PyDIS and pyKOSMOS)
 - **PypeIt Documentation**: <https://pypeit.readthedocs.io/en/stable/> (modern Python implementation of these principles)
-- **pyKOSMOS Resources**: `pykosmos_reference/` (reference data for wavelength/flux calibration)
+- **pyKOSMOS Resources**: `pykosmos_reference/` (reference data for wavelength/flux calibration from pyKOSMOS repository)
 - **Specification**: `../specs/001-galaxy-spec-pipeline/spec.md`

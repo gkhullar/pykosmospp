@@ -5,11 +5,11 @@
 
 ## Pre-Deployment Checklist
 
-✅ **README.md**: Comprehensive, professional README created with SPEshuLL branding  
+✅ **README.md**: Comprehensive, professional README created with pyKOSMOS++ branding  
 ✅ **.gitignore**: Updated to exclude FITS data files while preserving directory structure  
 ✅ **Documentation**: Tutorial notebook (8 sections), Sphinx docs, Read the Docs config complete  
-✅ **Branding**: Global rename from pyKOSMOS_specllm → pyKOSMOS SPEshuLL completed  
-✅ **Acronym**: SPE (Spec-driven) + SHU (Sky Harnessing Unified) + LL (LLM-assisted) defined  
+✅ **Branding**: Global rename from pyKOSMOS_specllm → pyKOSMOS++ completed  
+✅ **Project Name**: Next-generation spectroscopic reduction pipeline with modern naming  
 ✅ **Empty directories**: .gitkeep files created for examples/data/{biases,flats,arcs,science}/  
 
 ## Repository Details
@@ -52,10 +52,10 @@ git status | grep -i "\.fits"
 
 ```bash
 # Commit with comprehensive message
-git commit -m "Initial commit: pyKOSMOS SPEshuLL v0.1.0
+git commit -m "Initial commit: pyKOSMOS++ v0.1.0
 
 - AI-assisted spectroscopic reduction pipeline for APO-KOSMOS
-- Spec-driven Sky Harnessing Unified LLM-assisted architecture
+- Next-generation spec-driven development with LLM assistance
 - Complete calibration, wavelength, extraction, quality modules
 - 37/43 tests passing (86% coverage)
 - Comprehensive documentation: tutorial notebook, Sphinx, Read the Docs
@@ -68,8 +68,8 @@ git commit -m "Initial commit: pyKOSMOS SPEshuLL v0.1.0
 **Option A: Via GitHub Web Interface**
 
 1. Go to https://github.com/new
-2. Repository name: `pykosmos_speshull`
-3. Description: "AI-Assisted Spectroscopic Reduction Pipeline for APO-KOSMOS (SPEc-driven Sky Harnessing Unified LLM-assisted)"
+2. Repository name: `pykosmospp`
+3. Description: "AI-Assisted Spectroscopic Reduction Pipeline for APO-KOSMOS (Next-generation with LLM assistance)"
 4. Public repository
 5. **Do NOT** initialize with README, .gitignore, or LICENSE (we have these locally)
 6. Click "Create repository"
@@ -77,7 +77,7 @@ git commit -m "Initial commit: pyKOSMOS SPEshuLL v0.1.0
 **Option B: Via GitHub CLI** (if installed)
 
 ```bash
-gh repo create gkhullar/pykosmos_speshull --public \
+gh repo create gkhullar/pykosmospp --public \
   --description "AI-Assisted Spectroscopic Reduction Pipeline for APO-KOSMOS" \
   --source=.
 ```
@@ -177,7 +177,7 @@ This badge will update automatically once Read the Docs builds successfully.
 
 ### What's New
 
-This is the first public release of pyKOSMOS SPEshuLL, an AI-assisted spectroscopic reduction pipeline for APO-KOSMOS longslit observations.
+This is the first public release of pyKOSMOS++, an AI-assisted spectroscopic reduction pipeline for APO-KOSMOS longslit observations.
 
 ### Features
 
@@ -309,7 +309,7 @@ git push origin --delete old-name
 1. **Share with community**: Announce on relevant mailing lists, forums
 2. **Gather feedback**: Monitor Issues and Discussions
 3. **Continuous improvement**: Address bugs, add features based on user feedback
-4. **PyPI release**: Package for `pip install pykosmos-speshull` (requires `setup.py` or `pyproject.toml` refinement)
+4. **PyPI release**: Package for `pip install pykosmospp` (requires `setup.py` or `pyproject.toml` refinement)
 
 ---
 

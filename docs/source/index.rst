@@ -10,6 +10,13 @@ pyKOSMOS++ Documentation
 **pyKOSMOS++** is an AI-assisted spectroscopic reduction pipeline for APO-KOSMOS longslit observations built with modern spec-driven development and LLM assistance. 
 It automates the workflow from raw CCD images to wavelength-calibrated 1D spectra with quality assessment.
 
+**Built Upon pyKOSMOS**
+
+This pipeline extends `pyKOSMOS <https://github.com/jradavenport/pykosmos>`_ by James R. A. Davenport (University of Washington), 
+with key contributions from Francisca Chabour Barra (University of Washington), Azalee Bostroem, and Erin Howard. 
+The pipeline uses reference data (arc lamp linelists, extinction curves, standard star catalogs) from the pyKOSMOS resource directory 
+and follows spectroscopic reduction standards established by pyKOSMOS and its predecessor PyDIS.
+
 .. image:: https://img.shields.io/badge/Python-3.10+-blue.svg
    :alt: Python Version
    :target: https://www.python.org/downloads/
@@ -212,6 +219,35 @@ If you use pyKOSMOS++ in your research, please cite::
       publisher = {GitHub},
       url = {https://github.com/gkhullar/pykosmospp}
     }
+
+**Please also cite the original pyKOSMOS:**::
+
+    @software{pykosmos2023,
+      author = {James R. A. Davenport and Francisca Chabour Barra and
+                Azalee Bostroem and Erin Howard},
+      title = {pyKOSMOS: An easy to use reduction package for 
+               one-dimensional longslit spectroscopy},
+      year = {2023},
+      publisher = {Zenodo},
+      doi = {10.5281/zenodo.10152905},
+      url = {https://github.com/jradavenport/pykosmos}
+    }
+
+**And PyDIS (predecessor to pyKOSMOS):**::
+
+    @software{pydis2016,
+      author = {James R. A. Davenport},
+      title = {PyDIS: Python Longslit Spectroscopy Reduction Suite},
+      year = {2016},
+      publisher = {Zenodo},
+      url = {https://ui.adsabs.harvard.edu/abs/2016zndo.....58753D/abstract}
+    }
+
+**Key Scientific References:**
+
+* **Optimal Extraction**: Horne, K. 1986, PASP, 98, 609
+* **Cosmic Ray Rejection**: van Dokkum, P. G. 2001, PASP, 113, 1420
+* **CCD Reduction Methodology**: Massey, P. & Hanson, M. M. 2010, "A User's Guide to CCD Reductions with IRAF"
 
 
 Support

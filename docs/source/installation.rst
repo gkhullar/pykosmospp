@@ -1,9 +1,12 @@
 Installation
 ============
 
-This guide covers multiple installation methods for pyKOSMOS_specllm.
+This guide covers multiple installation methods for pyKOSMOS++.
 
 **Author:** Gourav Khullar
+
+**Note:** This pipeline extends `pyKOSMOS <https://github.com/jradavenport/pykosmos>`_ by James R. A. Davenport (University of Washington). 
+Reference data (arc lamp linelists, extinction curves) is included from the pyKOSMOS resource directory.
 
 Requirements
 ------------

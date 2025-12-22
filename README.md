@@ -18,6 +18,17 @@ AI-Assisted Spectroscopic Reduction Pipeline for APO-KOSMOS
 **Version:** 0.1.0  
 **Institution:** University of Washington
 
+### Built Upon pyKOSMOS
+
+**pyKOSMOS++** is built upon the foundation of [**pyKOSMOS**](https://github.com/jradavenport/pykosmos) by **James R. A. Davenport** (University of Washington), with key contributions from **Francisca Chabour Barra** (University of Washington), **Azalee Bostroem**, and **Erin Howard**. pyKOSMOS itself evolved from [**PyDIS**](https://github.com/StellarCartography/pydis), demonstrating a lineage of Python-based spectroscopic reduction tools.
+
+This project extends the original pyKOSMOS with AI-assisted development, spec-driven architecture, and enhanced automation while maintaining compatibility with pyKOSMOS reference data and following established astronomical reduction standards.
+
+**Key References:**
+- **pyKOSMOS**: Davenport, J. R. A. et al. (2023). *pyKOSMOS: Longslit Spectroscopy Reduction*. [DOI:10.5281/zenodo.10152905](https://doi.org/10.5281/zenodo.10152905)
+- **PyDIS**: Davenport, J. R. A. (2016). *PyDIS: Python Spectroscopy Reduction Suite*. [Zenodo](https://ui.adsabs.harvard.edu/abs/2016zndo.....58753D/abstract)
+- **specreduce**: [Astropy specreduce](https://github.com/astropy/specreduce) (inherited methods from PyDIS and pyKOSMOS)
+
 ### What Makes pyKOSMOS++ Special?
 
 🤖 **AI-Augmented Development**: Entire pipeline built using LLM assistance (Claude Sonnet 4.5) following rigorous spec-driven methodology
@@ -75,8 +86,8 @@ pip install -e ".[dev,docs]"
 **Recommended: Conda Environment**
 
 ```bash
-conda create -n speshull python=3.10
-conda activate speshull
+conda create -n pykosmospp python=3.10
+conda activate pykosmospp
 conda install -c conda-forge astropy scipy numpy matplotlib
 pip install -e .
 ```
@@ -204,7 +215,7 @@ pykosmospp/
 
 ### Reduction Workflow
 
-SPEshuLL follows standard spectroscopic reduction practices:
+pyKOSMOS++ follows standard spectroscopic reduction practices:
 
 1. **Calibration**: Combine bias/flat frames, validate quality
 2. **Wavelength Solution**: Detect arc lines, match to He-Ne-Ar catalog, fit Chebyshev polynomial
@@ -256,7 +267,7 @@ pytest tests/
 
 ## 🎯 Spec-Driven Development
 
-SPEshuLL demonstrates rigorous spec-driven methodology:
+pyKOSMOS++ demonstrates rigorous spec-driven methodology:
 
 ### Specification Documents
 
@@ -308,8 +319,8 @@ git clone https://github.com/gkhullar/pykosmospp.git
 cd pykosmospp
 
 # Create development environment
-conda create -n speshull-dev python=3.10
-conda activate speshull-dev
+conda create -n pykosmospp-dev python=3.10
+conda activate pykosmospp-dev
 
 # Install with dev dependencies
 pip install -e ".[dev,docs]"
@@ -323,20 +334,48 @@ cd docs && make html
 
 ---
 
-## 📖 Citation
+## 📚 Citation
 
 If you use pyKOSMOS++ in your research, please cite:
 
 ```bibtex
-@software{pykosmospp2025,
-  author = {Gourav Khullar},
-  title = {pyKOSMOS++: AI-Assisted Spectroscopic Reduction Pipeline for APO-KOSMOS},
-  year = {2025},
-  publisher = {GitHub},
-  url = {https://github.com/gkhullar/pykosmospp}
+@software{pykosmospp,
+  author       = {Gourav Khullar},
+  title        = {pyKOSMOS++: AI-Assisted Spectroscopic Reduction Pipeline},
+  year         = {2025},
+  version      = {0.1.0},
+  url          = {https://github.com/gkhullar/pykosmospp}
 }
 ```
 
+**Please also cite the original pyKOSMOS:**
+
+```bibtex
+@software{pykosmos,
+  author       = {James R. A. Davenport and
+                  Francisca Chabour Barra and
+                  Azalee Bostroem and
+                  Erin Howard},
+  title        = {pyKOSMOS: An easy to use reduction package for 
+                  one-dimensional longslit spectroscopy},
+  year         = {2023},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.10152905},
+  url          = {https://github.com/jradavenport/pykosmos}
+}
+```
+
+**And PyDIS (predecessor to pyKOSMOS):**
+
+```bibtex
+@software{pydis,
+  author       = {James R. A. Davenport},
+  title        = {PyDIS: Python Longslit Spectroscopy Reduction Suite},
+  year         = {2016},
+  publisher    = {Zenodo},
+  url          = {https://ui.adsabs.harvard.edu/abs/2016zndo.....58753D/abstract}
+}
+```
 **Key References:**
 
 - **Optimal Extraction**: Horne, K. 1986, PASP, 98, 609
