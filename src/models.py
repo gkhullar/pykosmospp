@@ -335,24 +335,66 @@ class CalibrationSet:
     master_flat: MasterFlat
     bad_pixel_mask: Optional[np.ndarray] = None
     
-    def apply_to_frame(self, science_frame: ScienceFrame) -> CCDData:
+    def apply_to_frame(self, science_frame: ScienceFrame, 
+                       propagate_uncertainty: bool = True) -> CCDData:
         """
-        Apply calibrations to science frame.
+        Apply calibrations to science frame with proper uncertainty propagation.
+        
+        Per T112: Propagates read noise + Poisson noise through bias subtraction
+        and flat fielding per FR-014.
+        
+        Uncertainty Propagation:
+        1. Raw frame: σ² = (readnoise)² + (data × gain) [Poisson + read noise]
+        2. Bias subtraction: σ²_calib = σ²_science + σ²_bias
+        3. Flat fielding: σ²_final = σ²_calib / flat² + (calib × σ_flat / flat²)²
         
         Parameters
         ----------
         science_frame : ScienceFrame
             Raw science frame
+        propagate_uncertainty : bool, optional
+            Whether to compute and propagate uncertainties (default: True)
             
         Returns
         -------
         CCDData
-            Calibrated science data
+            Calibrated science data with uncertainty
         """
-        # Bias subtraction
+        from astropy.nddata import StdDevUncertainty
+        
+        # Compute initial uncertainty for science frame if not present
+        if propagate_uncertainty and science_frame.data.uncertainty is None:
+            # σ² = readnoise² + (data × gain) [Poisson variance in e-]
+            # Convert to ADU: σ = sqrt(readnoise² + data × gain) / gain
+            variance = (science_frame.readnoise**2 + 
+                       np.maximum(science_frame.data.data, 0) * science_frame.gain) / science_frame.gain**2
+            science_frame.data.uncertainty = StdDevUncertainty(np.sqrt(variance))
+        
+        # Compute uncertainty for master bias if not present
+        if propagate_uncertainty and self.master_bias.data.uncertainty is None:
+            # Bias uncertainty from read noise (no Poisson component)
+            # Reduced by sqrt(N) for N combined frames
+            n_bias = len(self.master_bias.source_frames)
+            bias_variance = (science_frame.readnoise**2 / n_bias) / science_frame.gain**2
+            self.master_bias.data.uncertainty = StdDevUncertainty(
+                np.full_like(self.master_bias.data.data, np.sqrt(bias_variance))
+            )
+        
+        # Bias subtraction (astropy propagates uncertainties automatically)
         calibrated = science_frame.data.subtract(self.master_bias.data)
         
-        # Flat fielding
+        # Compute uncertainty for master flat if not present
+        if propagate_uncertainty and self.master_flat.data.uncertainty is None:
+            # Flat uncertainty from Poisson statistics
+            # Flats are typically high S/N, so Poisson dominates
+            n_flat = len(self.master_flat.source_frames)
+            flat_variance = (self.master_flat.data.data * science_frame.gain) / (science_frame.gain**2 * n_flat)
+            self.master_flat.data.uncertainty = StdDevUncertainty(
+                np.sqrt(np.maximum(flat_variance, 0))
+            )
+        
+        # Flat fielding (astropy propagates uncertainties automatically)
+        # σ²_final = σ²_calib / flat² + (calib × σ_flat / flat²)²
         calibrated = calibrated.divide(self.master_flat.data)
         
         # Apply bad pixel mask if available
