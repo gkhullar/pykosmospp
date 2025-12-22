@@ -2,7 +2,8 @@
 
 ![Python Version](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
-[![Documentation Status](https://readthedocs.org/projects/pykosmospp/badge/?version=latest)](https://pykosmospp.readthedocs.io/en/latest/)
+[![Documentation Status](https://readthedocs.org/projects/pykosmos-spec-ai/badge/?version=latest)](https://pykosmos-spec-ai.readthedocs.io/en/latest/)
+[![Code Coverage](https://img.shields.io/badge/coverage-86%25-brightgreen.svg)](https://github.com/gkhullar/pykosmos_spec_ai)
 
 My attempts at using a Spec-Driven Development Framework with LLMs to test and augment pyKOSMOS, the spectroscopic reduction pipeline for the optical spectrograph KOSMOS at the 3.5m telescope at APO. Built upon the foundation of [**pyKOSMOS**](https://github.com/jradavenport/pykosmos) (by James Davenport, UWashington).
 
@@ -140,12 +141,40 @@ reduced_output/
 
 ### Complete Documentation
 
-**Read the Docs**: [pykosmospp.readthedocs.io](https://pykosmospp.readthedocs.io/)
+**📚 Read the Docs**: [pykosmos-spec-ai.readthedocs.io](https://pykosmos-spec-ai.readthedocs.io/)
 
-- **[Installation Guide](https://pykosmospp.readthedocs.io/en/latest/installation.html)**: Detailed setup for all platforms
-- **[Quick Start](https://pykosmospp.readthedocs.io/en/latest/quickstart.html)**: 5-minute first reduction
+#### User Guides
+
+- **[CLI Reference](https://pykosmos-spec-ai.readthedocs.io/en/latest/user_guide/cli.html)**: Complete command-line interface documentation
+- **[Python API](https://pykosmos-spec-ai.readthedocs.io/en/latest/user_guide/python_api.html)**: Programmatic usage with examples
+- **[Configuration](https://pykosmos-spec-ai.readthedocs.io/en/latest/user_guide/configuration.html)**: Parameter reference for all pipeline stages
+- **[Output Products](https://pykosmos-spec-ai.readthedocs.io/en/latest/user_guide/output_products.html)**: FITS format specifications
+
+#### Getting Started
+
+- **[Installation](https://pykosmos-spec-ai.readthedocs.io/en/latest/installation.html)**: Detailed setup for all platforms
+- **[Quick Start](https://pykosmos-spec-ai.readthedocs.io/en/latest/quickstart.html)**: 5-minute first reduction
 - **[Tutorial Notebook](examples/tutorial.ipynb)**: Interactive 8-section walkthrough
-- **[API Reference](https://pykosmospp.readthedocs.io/en/latest/api/)**: Complete function documentation
+
+#### API Reference
+
+- **[Calibration Module](https://pykosmos-spec-ai.readthedocs.io/en/latest/api/calibration.html)**: Bias, flat, cosmic ray detection
+- **[Wavelength Module](https://pykosmos-spec-ai.readthedocs.io/en/latest/api/wavelength.html)**: Arc line detection and fitting
+- **[Extraction Module](https://pykosmos-spec-ai.readthedocs.io/en/latest/api/extraction.html)**: Trace detection and optimal extraction
+- **[Quality Module](https://pykosmos-spec-ai.readthedocs.io/en/latest/api/quality.html)**: Quality assessment and grading
+
+#### Algorithms
+
+- **[Trace Detection](https://pykosmos-spec-ai.readthedocs.io/en/latest/algorithms/trace_detection.html)**: Cross-correlation method
+- **[Wavelength Fitting](https://pykosmos-spec-ai.readthedocs.io/en/latest/algorithms/wavelength_fitting.html)**: Chebyshev polynomials with BIC
+- **[Optimal Extraction](https://pykosmos-spec-ai.readthedocs.io/en/latest/algorithms/optimal_extraction.html)**: Horne 1986 algorithm
+- **[Cosmic Ray Detection](https://pykosmos-spec-ai.readthedocs.io/en/latest/algorithms/cosmic_ray_detection.html)**: L.A.Cosmic method
+
+#### Support
+
+- **[Troubleshooting](https://pykosmos-spec-ai.readthedocs.io/en/latest/troubleshooting.html)**: Common errors and solutions
+- **[Contributing](https://pykosmos-spec-ai.readthedocs.io/en/latest/contributing.html)**: Developer guide and workflow
+
 
 ### Tutorial Notebook
 

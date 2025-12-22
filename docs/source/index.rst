@@ -61,48 +61,39 @@ Quick Links
 
    installation
    quickstart
-   tutorial
-   user_guide/overview
+   user_guide/cli
+   user_guide/python_api
    user_guide/configuration
-   user_guide/calibration
-   user_guide/wavelength
-   user_guide/extraction
-   user_guide/quality
-   user_guide/batch_processing
+   user_guide/output_products
 
 .. toctree::
    :maxdepth: 2
    :caption: API Reference
    :hidden:
 
-   api/index
-   api/pipeline
-   api/models
    api/calibration
    api/wavelength
    api/extraction
    api/quality
-   api/io
+   api/models
 
 .. toctree::
    :maxdepth: 2
-   :caption: Developer Guide
+   :caption: Algorithms
    :hidden:
 
-   developer/contributing
-   developer/architecture
-   developer/testing
-   developer/algorithms
+   algorithms/trace_detection
+   algorithms/wavelength_fitting
+   algorithms/optimal_extraction
+   algorithms/cosmic_ray_detection
 
 .. toctree::
    :maxdepth: 1
    :caption: Additional Resources
    :hidden:
 
-   changelog
-   faq
    troubleshooting
-   references
+   contributing
 
 
 Getting Started
