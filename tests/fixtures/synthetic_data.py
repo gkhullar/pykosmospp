@@ -24,11 +24,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# KOSMOS detector parameters (from research.md and config)
-KOSMOS_SHAPE = (4096, 2148)  # (nx, ny) - spectral × spatial
+# KOSMOS detector parameters (from real data_tests FITS files)
+# Note: FITS standard is NAXIS1=spatial(2148), NAXIS2=spectral(4096)
+KOSMOS_SHAPE = (2148, 4096)  # (spatial, spectral) - FITS standard order
 KOSMOS_GAIN = 1.4  # e-/ADU
-KOSMOS_READNOISE = 3.7  # e-
-KOSMOS_SATURATE = 58982.0  # ADU
+KOSMOS_READNOISE = 18.2  # e- (from real bias std)
+KOSMOS_BIAS_LEVEL = 3346.0  # ADU (from real bias mean)
+KOSMOS_SATURATE = 262143.0  # ADU (from real data max, 18-bit)
 KOSMOS_DISPERSION = 0.93  # Å/pixel (approximate)
 
 
@@ -36,7 +38,7 @@ def create_kosmos_header(frame_type: str, exposure_time: float = 0.0,
                         object_name: str = "TEST", lamp: str = "None",
                         airmass: float = 1.0) -> fits.Header:
     """
-    Create realistic KOSMOS FITS header.
+    Create realistic KOSMOS FITS header matching data_tests files.
     
     Parameters
     ----------
@@ -54,58 +56,87 @@ def create_kosmos_header(frame_type: str, exposure_time: float = 0.0,
     Returns
     -------
     fits.Header
-        FITS header with KOSMOS keywords
+        FITS header with KOSMOS keywords matching real data
     """
     header = fits.Header()
     
     # Basic FITS keywords
     header['SIMPLE'] = (True, 'Standard FITS format')
-    header['BITPIX'] = (-32, 'Bits per pixel')
+    header['BITPIX'] = (32, '32-bit integer')
     header['NAXIS'] = (2, 'Number of axes')
-    header['NAXIS1'] = (KOSMOS_SHAPE[0], 'Spectral axis length')
-    header['NAXIS2'] = (KOSMOS_SHAPE[1], 'Spatial axis length')
+    header['NAXIS1'] = (KOSMOS_SHAPE[0], 'Spatial axis length')
+    header['NAXIS2'] = (KOSMOS_SHAPE[1], 'Spectral axis length')
     header['EXTEND'] = (True, 'FITS extensions may exist')
     
-    # Observation metadata
-    header['OBSTYPE'] = (frame_type.upper(), 'Observation type')
-    header['OBJECT'] = (object_name, 'Object name')
+    # Observatory metadata (from real KOSMOS data)
+    header['OBSERVAT'] = ('APO', 'Observatory')
+    header['TELESCOP'] = ('3.5m', 'Telescope')
+    header['INSTRUME'] = ('kosmos', 'Instrument')
+    header['LATITUDE'] = (32.780361, 'Observatory latitude (deg)')
+    header['LONGITUD'] = (-105.820417, 'Observatory longitude (deg)')
+    
+    # Time system
+    header['TIMESYS'] = ('TAI', 'Time system')
+    header['UTC-TAI'] = (-37.0, 'UTC - TAI (sec)')
+    
+    # Observation metadata - match real KOSMOS format
+    # IMAGETYP: "Bias", "Comp" (arc/flat), "Object" (science)
+    if frame_type.lower() == 'bias':
+        imagetyp = 'Bias'
+    elif frame_type.lower() in ['flat', 'arc']:
+        imagetyp = 'Comp'
+    else:
+        imagetyp = 'Object'
+    
+    header['IMAGETYP'] = (imagetyp, 'Image type')
+    header['OBJNAME'] = (object_name if imagetyp == 'Object' else '', 'Object name')
     header['EXPTIME'] = (exposure_time, 'Exposure time (seconds)')
     header['AIRMASS'] = (airmass, 'Airmass')
+    
+    # Telescope pointing (placeholder values)
+    header['TELAZ'] = (75.0, 'Telescope azimuth (deg)')
+    header['TELALT'] = (80.0, 'Telescope altitude (deg)')
+    header['ZD'] = (90.0 - 80.0, 'Zenith distance (deg)')
+    
+    # WCS keywords (placeholder)
+    header['RADECSYS'] = ('Mount', 'Coordinate system')
+    header['CTYPE1'] = ('RA---TAN', 'WCS projection type')
+    header['CTYPE2'] = ('DEC--TAN', 'WCS projection type')
+    header['CRPIX1'] = (KOSMOS_SHAPE[0] / 2, 'Reference pixel X')
+    header['CRPIX2'] = (KOSMOS_SHAPE[1] / 2, 'Reference pixel Y')
+    
+    # Add RA/DEC for science frames
+    if imagetyp == 'Object':
+        header['RA'] = ('5:00:00.00', 'Right ascension')
+        header['DEC'] = ('0:00:00.00', 'Declination')
+        header['CRVAL1'] = (75.0, 'RA at reference pixel')
+        header['CRVAL2'] = (0.0, 'Dec at reference pixel')
     
     # Timestamp
     now = Time.now()
     header['DATE-OBS'] = (now.isot, 'UTC observation start')
-    header['MJD-OBS'] = (now.mjd, 'Modified Julian Date')
+    header['LST'] = ('02:09:20.806', 'Local sidereal time')
     
-    # Instrument configuration
-    header['TELESCOP'] = ('APO 3.5m', 'Telescope')
-    header['INSTRUME'] = ('KOSMOS', 'Instrument')
-    header['DETECTOR'] = ('e2v 231-C6', 'CCD detector')
-    header['GAIN'] = (KOSMOS_GAIN, 'CCD gain (e-/ADU)')
-    header['RDNOISE'] = (KOSMOS_READNOISE, 'Read noise (e-)')
-    header['SATURATE'] = (KOSMOS_SATURATE, 'Saturation level (ADU)')
+    # Instrument configuration (real KOSMOS doesn't always have these)
+    # header['GAIN'] = (KOSMOS_GAIN, 'CCD gain (e-/ADU)')
+    # header['RDNOISE'] = (KOSMOS_READNOISE, 'Read noise (e-)')
     
     # Spectroscopic configuration
-    header['DISPAXIS'] = (1, 'Dispersion axis (1=horizontal)')
-    header['DISPER'] = (KOSMOS_DISPERSION, 'Dispersion (Angstrom/pixel)')
-    header['CENWAVE'] = (5500.0, 'Central wavelength (Angstrom)')
-    header['LAMPNAME'] = (lamp, 'Calibration lamp name')
-    
-    # Data processing flags
-    header['BIASSEC'] = ('[1:50,*]', 'Bias section (if present)')
-    header['TRIMSEC'] = ('[51:4096,*]', 'Trim section')
+    header['DISPAXIS'] = (2, 'Dispersion axis (2=vertical in FITS)')
     
     return header
 
 
 def generate_bias_frame(output_path: Path, seed: Optional[int] = None) -> None:
     """
-    Generate synthetic bias frame.
+    Generate synthetic bias frame matching real KOSMOS data.
     
-    Bias frames have:
-    - Flat pedestal (~500 ADU)
-    - Read noise (Gaussian, σ=readnoise/gain)
-    - No Poisson component (zero photons)
+    Real KOSMOS bias characteristics:
+    - Shape: (2148, 4096) - spatial × spectral
+    - Mean: ~3346 ADU
+    - Std: ~18.2 ADU
+    - Read noise dominated (no Poisson component)
+    - Data type: int32
     
     Parameters
     ----------
@@ -117,39 +148,43 @@ def generate_bias_frame(output_path: Path, seed: Optional[int] = None) -> None:
     if seed is not None:
         np.random.seed(seed)
     
-    # Pedestal level (typical bias level)
-    pedestal = 500.0  # ADU
+    # Pedestal level matching real KOSMOS bias
+    pedestal = KOSMOS_BIAS_LEVEL  # ~3346 ADU
     
-    # Read noise (Gaussian)
-    noise_adu = KOSMOS_READNOISE / KOSMOS_GAIN
-    data = pedestal + np.random.normal(0, noise_adu, KOSMOS_SHAPE)
+    # Read noise matching real data (std ~18.2 ADU)
+    data = pedestal + np.random.normal(0, KOSMOS_READNOISE, KOSMOS_SHAPE)
+    
+    # Convert to int32 to match real data
+    data = data.astype(np.int32)
     
     # Create FITS
     header = create_kosmos_header('bias', exposure_time=0.0)
-    hdu = fits.PrimaryHDU(data=data.astype(np.float32), header=header)
+    hdu = fits.PrimaryHDU(data=data, header=header)
     hdu.writeto(output_path, overwrite=True)
     
     logger.info(f"Generated bias frame: {output_path}")
 
 
-def generate_flat_frame(output_path: Path, mean_counts: float = 30000.0,
+
+def generate_flat_frame(output_path: Path, mean_counts: float = 24676.0,
                        illumination_pattern: bool = True,
                        seed: Optional[int] = None) -> None:
     """
-    Generate synthetic flat field frame.
+    Generate synthetic flat field frame matching real KOSMOS data.
     
-    Flat frames have:
-    - High signal level (~30k ADU, well below saturation)
-    - Poisson noise (dominant at high counts)
-    - Read noise (negligible compared to Poisson)
-    - Optional illumination pattern (spatial variation)
+    Real KOSMOS flat characteristics:
+    - Shape: (2148, 4096)
+    - Mean: ~24676 ADU
+    - High signal with Poisson noise
+    - Can saturate at 262143 (18-bit)
+    - IMAGETYP: "Comp", EXPTIME: ~5.0
     
     Parameters
     ----------
     output_path : Path
         Output FITS file path
     mean_counts : float
-        Mean count level in ADU
+        Mean count level in ADU (default: ~24676 from real data)
     illumination_pattern : bool
         Add realistic illumination gradient
     seed : int, optional
@@ -158,33 +193,35 @@ def generate_flat_frame(output_path: Path, mean_counts: float = 30000.0,
     if seed is not None:
         np.random.seed(seed)
     
-    # Start with uniform illumination
-    data = np.full(KOSMOS_SHAPE, mean_counts, dtype=np.float32)
+    # Start with bias level + signal
+    data = np.full(KOSMOS_SHAPE, KOSMOS_BIAS_LEVEL + mean_counts, dtype=np.float64)
     
     # Add illumination pattern (vignetting, slit function)
     if illumination_pattern:
-        # Spatial profile (Gaussian slit function)
-        y = np.arange(KOSMOS_SHAPE[1])
-        spatial_profile = np.exp(-((y - KOSMOS_SHAPE[1]/2) / (KOSMOS_SHAPE[1]/4))**2)
-        data *= spatial_profile[np.newaxis, :]
+        # Spatial profile (Gaussian slit function along spatial axis)
+        spatial = np.arange(KOSMOS_SHAPE[0])
+        spatial_profile = np.exp(-((spatial - KOSMOS_SHAPE[0]/2) / (KOSMOS_SHAPE[0]/4))**2)
+        data *= spatial_profile[:, np.newaxis]
         
         # Spectral gradient (wavelength-dependent efficiency)
-        x = np.arange(KOSMOS_SHAPE[0])
-        spectral_efficiency = 1.0 - 0.2 * (x / KOSMOS_SHAPE[0])
-        data *= spectral_efficiency[:, np.newaxis]
+        spectral = np.arange(KOSMOS_SHAPE[1])
+        spectral_efficiency = 1.0 - 0.2 * (spectral / KOSMOS_SHAPE[1])
+        data *= spectral_efficiency[np.newaxis, :]
     
-    # Add Poisson noise (dominant)
+    # Add Poisson noise (dominant for high signal)
     data_electrons = data * KOSMOS_GAIN
-    noisy_electrons = np.random.poisson(data_electrons)
+    noisy_electrons = np.random.poisson(np.maximum(data_electrons, 0))
     data = noisy_electrons / KOSMOS_GAIN
     
     # Add read noise (small contribution)
-    noise_adu = KOSMOS_READNOISE / KOSMOS_GAIN
-    data += np.random.normal(0, noise_adu, KOSMOS_SHAPE)
+    data += np.random.normal(0, KOSMOS_READNOISE, KOSMOS_SHAPE)
+    
+    # Clip to saturation level and convert to int32
+    data = np.clip(data, 0, KOSMOS_SATURATE).astype(np.int32)
     
     # Create FITS
-    header = create_kosmos_header('flat', exposure_time=10.0, lamp='Flat')
-    hdu = fits.PrimaryHDU(data=data.astype(np.float32), header=header)
+    header = create_kosmos_header('flat', exposure_time=5.0, lamp='Flat')
+    hdu = fits.PrimaryHDU(data=data, header=header)
     hdu.writeto(output_path, overwrite=True)
     
     logger.info(f"Generated flat frame: {output_path}")
@@ -218,8 +255,8 @@ def generate_arc_frame(output_path: Path, lamp: str = 'HeNeAr',
     if seed is not None:
         np.random.seed(seed)
     
-    # Start with background
-    data = np.full(KOSMOS_SHAPE, mean_background, dtype=np.float32)
+    # Start with bias + background (matching real arc mean ~24767)
+    data = np.full(KOSMOS_SHAPE, KOSMOS_BIAS_LEVEL + mean_background, dtype=np.float64)
     
     # Load line list for wavelengths (simplified)
     if lamp == 'HeNeAr':
@@ -248,38 +285,39 @@ def generate_arc_frame(output_path: Path, lamp: str = 'HeNeAr',
     # Convert wavelengths to pixel positions
     # Assume linear dispersion centered at 5500 Å
     central_wavelength = 5500.0
-    central_pixel = KOSMOS_SHAPE[0] / 2
+    central_pixel = KOSMOS_SHAPE[1] / 2  # Spectral axis is NAXIS2
     
     # Add emission lines
     for wavelength in selected_lines:
         # Pixel position (with small nonlinearity)
         pixel_pos = central_pixel + (wavelength - central_wavelength) / KOSMOS_DISPERSION
-        pixel_pos += 0.001 * (pixel_pos - central_pixel)**2 / KOSMOS_SHAPE[0]  # Slight distortion
+        pixel_pos += 0.001 * (pixel_pos - central_pixel)**2 / KOSMOS_SHAPE[1]  # Slight distortion
         
-        if 0 <= pixel_pos < KOSMOS_SHAPE[0]:
+        if 0 <= pixel_pos < KOSMOS_SHAPE[1]:
             # Line intensity (varies by line strength)
-            intensity = np.random.uniform(500, 5000)  # ADU peak
+            intensity = np.random.uniform(5000, 50000)  # ADU peak
             
             # Spectral width (instrument resolution)
             fwhm_spectral = 3.0  # pixels
             sigma_spectral = fwhm_spectral / 2.355
             
-            # Spatial profile (slit)
+            # Spatial width (slit)
             fwhm_spatial = 4.0  # pixels
             sigma_spatial = fwhm_spatial / 2.355
             
             # Generate 2D Gaussian line
-            x = np.arange(KOSMOS_SHAPE[0])
-            y = np.arange(KOSMOS_SHAPE[1])
+            # Note: KOSMOS_SHAPE is (spatial=2148, spectral=4096)
+            spatial = np.arange(KOSMOS_SHAPE[0])
+            spectral = np.arange(KOSMOS_SHAPE[1])
             
-            # Spectral Gaussian
-            spectral_profile = np.exp(-((x - pixel_pos) / sigma_spectral)**2)
+            # Spatial Gaussian (centered on slit)
+            spatial_profile = np.exp(-((spatial - KOSMOS_SHAPE[0]/2) / sigma_spatial)**2)
             
-            # Spatial Gaussian (centered)
-            spatial_profile = np.exp(-((y - KOSMOS_SHAPE[1]/2) / sigma_spatial)**2)
+            # Spectral Gaussian (at line wavelength)
+            spectral_profile = np.exp(-((spectral - pixel_pos) / sigma_spectral)**2)
             
-            # Add to data
-            line_data = intensity * spectral_profile[:, np.newaxis] * spatial_profile[np.newaxis, :]
+            # Add to data (spatial × spectral)
+            line_data = spatial_profile[:, np.newaxis] * spectral_profile[np.newaxis, :] * intensity
             data += line_data
     
     # Add Poisson noise
@@ -288,12 +326,14 @@ def generate_arc_frame(output_path: Path, lamp: str = 'HeNeAr',
     data = noisy_electrons / KOSMOS_GAIN
     
     # Add read noise
-    noise_adu = KOSMOS_READNOISE / KOSMOS_GAIN
-    data += np.random.normal(0, noise_adu, KOSMOS_SHAPE)
+    data += np.random.normal(0, KOSMOS_READNOISE, KOSMOS_SHAPE)
+    
+    # Clip to saturation and convert to int32
+    data = np.clip(data, 0, KOSMOS_SATURATE).astype(np.int32)
     
     # Create FITS
-    header = create_kosmos_header('arc', exposure_time=30.0, lamp=lamp)
-    hdu = fits.PrimaryHDU(data=data.astype(np.float32), header=header)
+    header = create_kosmos_header('arc', exposure_time=5.0, lamp=lamp)
+    hdu = fits.PrimaryHDU(data=data, header=header)
     hdu.writeto(output_path, overwrite=True)
     
     logger.info(f"Generated arc frame: {output_path} ({lamp}, {num_lines} lines)")
