@@ -91,11 +91,17 @@ def create_master_bias(bias_frames: List[BiasFrame], method: str = 'median') -> 
     # Combine
     combined = sigma_clipped_median_combine(ccd_list)
     
-    # Create MasterBias
+    # Calculate statistics
+    bias_level = float(np.median(combined.data))
+    bias_stdev = float(np.std(combined.data))
+    
+    # Create MasterBias with correct fields
     master_bias = MasterBias(
-        data=combined.data,
-        source_frames=bias_frames,
-        combination_method=method
+        data=combined,
+        n_combined=len(bias_frames),
+        bias_level=bias_level,
+        bias_stdev=bias_stdev,
+        provenance={'method': method, 'n_frames': len(bias_frames)}
     )
     
     return master_bias
@@ -122,21 +128,32 @@ def create_master_flat(flat_frames: List[FlatFrame], master_bias: MasterBias, me
     # Bias-subtract each flat
     corrected_flats = []
     for flat in flat_frames:
-        corrected = flat.data - master_bias.data
+        corrected = flat.data - master_bias.data.data
         corrected_flats.append(CCDData(corrected, unit=u.electron))
     
     # Combine
     combined = sigma_clipped_median_combine(corrected_flats)
     
-    # Normalize to median
-    median_value = np.median(combined.data)
-    normalized = combined.data / median_value
+    # Normalize to median in central region
+    ny, nx = combined.data.shape
+    y_start, y_end = ny // 4, 3 * ny // 4
+    x_start, x_end = nx // 4, 3 * nx // 4
+    central_region = combined.data[y_start:y_end, x_start:x_end]
+    median_value = np.median(central_region)
+    normalized_data = combined.data / median_value
+    normalized = CCDData(normalized_data, unit=u.dimensionless_unscaled)
     
-    # Create MasterFlat
+    # Calculate bad pixel fraction (pixels far from 1.0)
+    bad_mask = (normalized_data < 0.5) | (normalized_data > 1.5)
+    bad_pixel_fraction = float(np.sum(bad_mask) / bad_mask.size)
+    
+    # Create MasterFlat with correct fields
     master_flat = MasterFlat(
         data=normalized,
-        source_frames=flat_frames,
-        combination_method=method
+        n_combined=len(flat_frames),
+        normalization_region=(y_start, y_end, x_start, x_end),
+        bad_pixel_fraction=bad_pixel_fraction,
+        provenance={'method': method, 'n_frames': len(flat_frames)}
     )
     
     return master_flat
