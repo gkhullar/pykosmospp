@@ -153,8 +153,17 @@ class BiasFrame(RawFrame):
         """Validate bias frame has zero exposure time."""
         super().validate_header()
         
-        if self.header.get('IMAGETYP', '').lower() not in ['bias', 'zero']:
-            raise ValueError(f"Frame {self.file_path} is not a bias frame")
+        image_type = self.header.get('IMAGETYP', '').lower()
+        # Accept various bias frame identifiers
+        valid_types = ['bias', 'zero', 'bias frame', 'zero frame']
+        if not any(vtype in image_type for vtype in valid_types):
+            # If IMAGETYP is missing or doesn't match, check OBJECT field
+            object_name = self.header.get('OBJECT', '').lower()
+            if not any(vtype in object_name for vtype in valid_types):
+                raise ValueError(
+                    f"Frame {self.file_path} is not a bias frame. "
+                    f"IMAGETYP='{self.header.get('IMAGETYP')}', OBJECT='{self.header.get('OBJECT')}'"
+                )
             
         # Bias frames should have zero or very short exposure
         if self.exposure_time > 0.1:
@@ -180,8 +189,16 @@ class FlatFrame(RawFrame):
         super().validate_header()
         
         image_type = self.header.get('IMAGETYP', '').lower()
-        if 'flat' not in image_type:
-            raise ValueError(f"Frame {self.file_path} is not a flat frame")
+        # Accept various flat frame identifiers
+        valid_types = ['flat', 'flat field', 'flatfield', 'dome flat', 'sky flat']
+        if not any(vtype in image_type for vtype in valid_types):
+            # If IMAGETYP is missing or doesn't match, check OBJECT field
+            object_name = self.header.get('OBJECT', '').lower()
+            if not any(vtype in object_name for vtype in valid_types):
+                raise ValueError(
+                    f"Frame {self.file_path} is not a flat frame. "
+                    f"IMAGETYP='{self.header.get('IMAGETYP')}', OBJECT='{self.header.get('OBJECT')}'"
+                )
             
         # Extract lamp type if available
         self.lamp_type = self.header.get('LAMPTYPE', 'unknown')
@@ -206,8 +223,16 @@ class ArcFrame(RawFrame):
         super().validate_header()
         
         image_type = self.header.get('IMAGETYP', '').lower()
-        if 'arc' not in image_type and 'comp' not in image_type:
-            raise ValueError(f"Frame {self.file_path} is not an arc frame")
+        # Accept various arc frame identifiers
+        valid_types = ['arc', 'comp', 'comparison', 'arc lamp', 'wavelength', 'henear', 'argon', 'krypton']
+        if not any(vtype in image_type for vtype in valid_types):
+            # If IMAGETYP is missing or doesn't match, check OBJECT field
+            object_name = self.header.get('OBJECT', '').lower()
+            if not any(vtype in object_name for vtype in valid_types):
+                raise ValueError(
+                    f"Frame {self.file_path} is not an arc frame. "
+                    f"IMAGETYP='{self.header.get('IMAGETYP')}', OBJECT='{self.header.get('OBJECT')}'"
+                )
             
         # Detect arc lamp type from filename or header (per research.md §8)
         self._detect_lamp_type_from_filename()
@@ -259,8 +284,19 @@ class ScienceFrame(RawFrame):
         super().validate_header()
         
         image_type = self.header.get('IMAGETYP', '').lower()
-        if 'object' not in image_type and 'science' not in image_type:
-            raise ValueError(f"Frame {self.file_path} is not a science frame")
+        # Accept various science frame identifiers
+        valid_types = ['object', 'science', 'target', 'light']
+        if not any(vtype in image_type for vtype in valid_types):
+            # If IMAGETYP doesn't match, be lenient - if it's not bias/flat/arc, assume science
+            # This handles observatories with non-standard IMAGETYP values
+            if not any(exclude in image_type for exclude in ['bias', 'zero', 'flat', 'arc', 'comp', 'dark']):
+                # Assume it's a science frame if it doesn't match calibration types
+                pass
+            else:
+                raise ValueError(
+                    f"Frame {self.file_path} is not a science frame. "
+                    f"IMAGETYP='{self.header.get('IMAGETYP')}'"
+                )
             
         # Extract target metadata
         self.target_name = self.header.get('OBJECT', 'unknown')
