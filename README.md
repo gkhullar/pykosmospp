@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykosmospp/badge/?version=latest)](https://pykosmospp.readthedocs.io/en/latest/)
 
-AI-Assisted Spectroscopic Reduction Pipeline for APO-KOSMOS
+My attempts at using a Spec-Driven Development Framework with LLMs to test and augment pyKOSMOS, the spectroscopic reduction pipeline for the optical spectrograph KOSMOS at the 3.5m telescope at APO. Built upon the foundation of [**pyKOSMOS**](https://github.com/jradavenport/pykosmos) -- by **James R. A. Davenport (UWashington)**
 
 *Built with modern spec-driven development and LLM assistance*
 
@@ -14,9 +14,8 @@ AI-Assisted Spectroscopic Reduction Pipeline for APO-KOSMOS
 
 **pyKOSMOS++** is an AI-assisted spectroscopic reduction pipeline designed for APO-KOSMOS longslit observations. This project demonstrates modern spec-driven development practices, combining traditional astronomical data reduction techniques with LLM assistance to streamline the workflow from raw CCD images to science-ready, wavelength-calibrated 1D spectra.
 
-**Author:** Gourav Khullar  
+**Author:** Gourav Khullar (University of Washington)
 **Version:** 0.1.0  
-**Institution:** University of Washington
 
 ### Built Upon pyKOSMOS
 
