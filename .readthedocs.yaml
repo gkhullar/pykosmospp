@@ -15,16 +15,6 @@ formats:
   - htmlzip
   - epub
 
-# Python configuration
-python:
-  version: "3.10"
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - docs
-    - requirements: docs/requirements.txt
-
 # Build settings
 build:
   os: ubuntu-22.04
@@ -36,7 +26,17 @@ build:
     post_build:
       - echo "Build complete!"
 
+# Python installation
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+    - requirements: docs/requirements.txt
+
 # Submodules
 submodules:
   include: []
   recursive: false
+
