@@ -55,16 +55,30 @@ Synthetic test dataset for tutorial execution:
 To generate synthetic test data:
 
 ```python
-from pykosmos_spec_ai.testing.synthetic import generate_test_dataset
+from tests.fixtures.synthetic_data import generate_test_dataset
+from pathlib import Path
 
-generate_test_dataset(
-    output_dir="examples/data",
-    n_bias=3,
-    n_flat=3,
-    n_arc=1,
-    n_science=1
+# Generate complete test dataset
+files = generate_test_dataset(
+    output_dir=Path("examples/data"),
+    num_bias=3,
+    num_flat=3,
+    num_arc=1,
+    num_science=1,
+    seed=42  # For reproducibility
 )
+
+print(f"Generated {len(files['bias'])} bias frames")
+print(f"Generated {len(files['flat'])} flat frames")
+print(f"Generated {len(files['arc'])} arc frames")
+print(f"Generated {len(files['science'])} science frames")
 ```
+
+**Note:** The synthetic data generator produces FITS files matching real KOSMOS observatory format:
+- Shape: (2148, 4096) pixels - spatial × spectral (FITS standard)
+- Data type: int32 (matching KOSMOS detector)
+- Bias level: ~3346 ADU, Read noise: ~18.2 ADU
+- Complete APO/KOSMOS headers with observatory metadata
 
 **Note:** Full KOSMOS datasets are typically 1-10 GB per night. The example dataset is <50 MB for tutorial purposes.
 
