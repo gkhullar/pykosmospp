@@ -342,10 +342,10 @@
 
 ### User Guide Documentation
 
-- [ ] T143 [P] Create docs/source/user_guide/cli.rst (complete CLI reference: main command, subcommands, options, exit codes, examples)
-- [ ] T144 [P] Create docs/source/user_guide/python_api.rst (PipelineRunner usage, module imports, programmatic access, code examples)
-- [ ] T145 [P] Create docs/source/user_guide/configuration.rst (YAML config file structure, all parameters explained, detector settings, algorithm tuning)
-- [ ] T146 [P] Create docs/source/user_guide/output_products.rst (directory structure, FITS file formats, quality reports, diagnostic plots, metadata)
+- [X] T143 [P] Create docs/source/user_guide/cli.rst (complete CLI reference: main command, subcommands, options, exit codes, examples)
+- [X] T144 [P] Create docs/source/user_guide/python_api.rst (PipelineRunner usage, module imports, programmatic access, code examples)
+- [X] T145 [P] Create docs/source/user_guide/configuration.rst (YAML config file structure, all parameters explained, detector settings, algorithm tuning)
+- [X] T146 [P] Create docs/source/user_guide/output_products.rst (directory structure, FITS file formats, quality reports, diagnostic plots, metadata)
 
 ### Tutorial Documentation
 
@@ -356,28 +356,28 @@
 
 ### API Reference Documentation
 
-- [ ] T151 [P] Create docs/source/api/calibration.rst (autodoc for calibration module: combine, bias, flat, cosmic modules)
-- [ ] T152 [P] Create docs/source/api/wavelength.rst (autodoc for wavelength module: identify, match, fit, apply)
-- [ ] T153 [P] Create docs/source/api/extraction.rst (autodoc for extraction module: trace, profile, sky, extract)
-- [ ] T154 [P] Create docs/source/api/quality.rst (autodoc for quality module: validate, metrics, plots)
-- [ ] T155 [P] Create docs/source/api/models.rst (autodoc for data models: RawFrame hierarchy, calibration classes, spectroscopic data)
+- [X] T151 [P] Create docs/source/api/calibration.rst (autodoc for calibration module: combine, bias, flat, cosmic modules)
+- [X] T152 [P] Create docs/source/api/wavelength.rst (autodoc for wavelength module: identify, match, fit, apply)
+- [X] T153 [P] Create docs/source/api/extraction.rst (autodoc for extraction module: trace, profile, sky, extract)
+- [X] T154 [P] Create docs/source/api/quality.rst (autodoc for quality module: validate, metrics, plots)
+- [X] T155 [P] Create docs/source/api/models.rst (autodoc for data models: RawFrame hierarchy, calibration classes, spectroscopic data)
 
 ### Algorithm Documentation
 
-- [ ] T156 [P] Create docs/source/algorithms/trace_detection.rst (cross-correlation method, emission masking, centroid tracing, references to research.md §4)
-- [ ] T157 [P] Create docs/source/algorithms/wavelength_fitting.rst (Chebyshev polynomials, BIC model selection, sigma-clipping, normalization, references to research.md §8)
-- [ ] T158 [P] Create docs/source/algorithms/optimal_extraction.rst (Horne 1986 algorithm, variance propagation, aperture fallback, references to research.md §5)
-- [ ] T159 [P] Create docs/source/algorithms/cosmic_ray_detection.rst (L.A.Cosmic method, parameters, performance, references to research.md §9)
+- [X] T156 [P] Create docs/source/algorithms/trace_detection.rst (cross-correlation method, emission masking, centroid tracing, references to research.md §4)
+- [X] T157 [P] Create docs/source/algorithms/wavelength_fitting.rst (Chebyshev polynomials, BIC model selection, sigma-clipping, normalization, references to research.md §8)
+- [X] T158 [P] Create docs/source/algorithms/optimal_extraction.rst (Horne 1986 algorithm, variance propagation, aperture fallback, references to research.md §5)
+- [X] T159 [P] Create docs/source/algorithms/cosmic_ray_detection.rst (L.A.Cosmic method, parameters, performance, references to research.md §9)
 
 ### Documentation Infrastructure
 
-- [ ] T160 Create docs/source/troubleshooting.rst (common errors, solutions, FAQ, performance optimization, getting help)
+- [X] T160 Create docs/source/troubleshooting.rst (common errors, solutions, FAQ, performance optimization, getting help)
 - [X] T161 Create docs/requirements.txt (sphinx, sphinx_rtd_theme, sphinx-autodoc-typehints, dependencies for building docs)
 - [X] T162 Create .readthedocs.yaml configuration file (Python version, install dependencies, build commands)
 - [ ] T163 Add docs build check to CI/CD (GitHub Actions: build Sphinx docs, check for warnings/errors, upload artifacts)
 - [ ] T164 Register project on readthedocs.org and configure webhook (link GitHub repo, set build settings, enable PR previews)
-- [ ] T165 Update README.md with documentation links (link to Read the Docs site, badge, quick navigation to key sections)
-- [ ] T166 Create docs/source/contributing.rst (development setup, constitution principles, testing, pull request process)
+- [X] T165 Update README.md with documentation links (link to Read the Docs site, badge, quick navigation to key sections)
+- [X] T166 Create docs/source/contributing.rst (development setup, constitution principles, testing, pull request process)
 - [ ] T167 Add example notebook to documentation (nbsphinx integration to render tutorial.ipynb in Sphinx docs)
 
 ---
