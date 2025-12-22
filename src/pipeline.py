@@ -268,13 +268,14 @@ class PipelineRunner:
                 processing_log = []
                 processing_log.append(f"Source: {science_frame.file_path.name}")
                 
-                # Apply calibrations
-                calibrated_science = calib_set.apply_to_frame(science_frame)
-                processing_log.append("Applied bias and flat calibrations")
+                # Apply calibrations with uncertainty propagation
+                calibrated_science = calib_set.apply_to_frame(science_frame, propagate_uncertainty=True)
+                processing_log.append("Applied bias and flat calibrations with uncertainty propagation")
                 
                 # Detect cosmic rays
+                from astropy.nddata import CCDData
                 cr_mask = detect_cosmic_rays(
-                    CCDData(calibrated_science.data, unit=u.electron),
+                    CCDData(calibrated_science.data, unit=calibrated_science.unit),
                     readnoise=self.config['detector']['readnoise'],
                     gain=self.config['detector']['gain']
                 )
@@ -282,11 +283,19 @@ class PipelineRunner:
                 logger.info(f"    Cosmic rays: {cosmic_ray_fraction:.3f}")
                 processing_log.append(f"Detected cosmic rays: {cosmic_ray_fraction:.3f}")
                 
-                # Create Spectrum2D
+                # Create Spectrum2D with proper variance from calibrated data
                 from .models import Spectrum2D
+                
+                # Extract variance from calibrated CCDData
+                if calibrated_science.uncertainty is not None:
+                    variance = calibrated_science.uncertainty.array ** 2
+                else:
+                    # Fallback to Poisson approximation if uncertainty not computed
+                    variance = np.maximum(calibrated_science.data, 0) * science_frame.gain / science_frame.gain**2
+                
                 spectrum_2d = Spectrum2D(
                     data=calibrated_science.data,
-                    variance=calibrated_science.data.copy(),  # Poisson approximation
+                    variance=variance,
                     source_frame=science_frame,
                     cosmic_ray_mask=cr_mask
                 )

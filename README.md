@@ -63,6 +63,15 @@ This project extends the original pyKOSMOS with AI-assisted development, spec-dr
 - **Profile Consistency**: Chi-squared scoring for spatial profile validation
 - **Comprehensive Diagnostics**: 2D spectra, wavelength fits, spatial profiles, quality metrics
 
+### Advanced Features (Phase 8)
+
+- **Multiple Extraction Methods**: Optimal (Horne 1986) and boxcar extraction with automatic variance propagation
+- **Spectral Binning**: Adaptive binning to target wavelength resolution with flux conservation
+- **Spatial Binning**: Combine pixels along spatial axis to boost SNR for faint objects
+- **Flux Calibration**: Atmospheric extinction correction and sensitivity function support
+- **Enhanced Uncertainty Propagation**: Full covariance tracking through all reduction steps
+- **Synthetic Test Data**: KOSMOS-format test FITS generator matching real observatory data
+
 ---
 
 ## Quick Start

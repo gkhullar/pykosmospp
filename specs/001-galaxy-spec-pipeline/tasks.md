@@ -287,23 +287,23 @@
 
 **Purpose**: Enhancements affecting multiple user stories, final testing, documentation
 
-- [ ] T105 [P] Add spatial binning support to src/extraction/extract.py per research.md §6 (bin_spatial() function, pre-extraction binning if config binning.spatial.enabled=True, factor=2 default)
-- [ ] T106 [P] Add spectral binning support to src/wavelength/apply.py per research.md §6 (bin_spectral() function using specutils.manipulation.bin_function, post-extraction binning if config binning.spectral.enabled=True, width_angstrom=2.0 default)
-- [ ] T107 [P] Implement flux calibration module src/flux_calibration/extinction.py (apply_extinction_correction() using pyKOSMOS apoextinct.dat per FR-009, optional step if config flux_calibration.extinction.enabled=True); **Constitution §VI**: Consult notebooks/ for flux calibration workflows before implementation
-- [ ] T108 [P] Implement flux calibration module src/flux_calibration/sensitivity.py (compute_sensitivity_function() from standard star observations, optional step if standard_star_file provided per FR-009); **Constitution §VI**: Consult notebooks/ for sensitivity function examples before implementation
-- [ ] T109 [P] Add extraction method selection to src/extraction/extract.py (implement extract_boxcar() simple aperture sum as alternative to optimal extraction, selectable via config extraction.method='optimal' or 'boxcar' per contracts/config-schema.yaml)
-- [ ] T110 [P] Implement src/extraction/profile.py Moffat profile fitting as alternative to Gaussian per research.md §4 (scipy.optimize.curve_fit with Moffat function, selectable via config spatial_profile.profile_type='Moffat')
-- [ ] T111 [P] Add cosmic ray detection integration to PipelineRunner.run() (call detect_cosmic_rays() from src/calibration/cosmic.py after flat correction, before trace detection, save cosmic_ray_mask in Spectrum2D per data-model.md §9)
-- [ ] T112 [P] Implement uncertainty propagation throughout pipeline (read noise + Poisson noise → variance arrays in CCDData, propagate through calibrations/extraction to Spectrum1D.uncertainty per FR-014)
-- [ ] T113 Create tests/fixtures/synthetic_data.py to generate synthetic KOSMOS FITS files per quickstart.md (kosmos-generate-testdata command: bias, flat, arc with HeNeAr lines, science with 1-2 galaxy traces at configurable SNR); **Note**: This is a test utility, not a production CLI feature
-- [ ] T114 Create tests/integration/test_pipeline_e2e.py end-to-end test (runs full pipeline on synthetic data, validates outputs exist, checks quality metrics meet thresholds per SC-001 through SC-007)
-- [ ] T115 [P] Create tests/unit/test_calibration.py (tests combine, bias, flat, cosmic modules independently with synthetic data)
-- [ ] T116 [P] Create tests/unit/test_extraction.py (tests trace detection, profile fitting, sky subtraction, optimal extraction with known inputs)
-- [ ] T117 [P] Create tests/unit/test_wavelength.py (tests arc line identification, line matching, polynomial fitting, wavelength application with pyKOSMOS linelists)
-- [ ] T118 [P] Create tests/unit/test_quality.py (tests validation functions, metrics computation, plot generation functions)
-- [ ] T119 Update README.md with comprehensive quickstart per quickstart.md test scenarios (installation, synthetic test data generation, basic reduction, interpreting outputs)
-- [ ] T120 [P] Add docstrings to all public functions and classes (numpy-style docstrings with Parameters, Returns, Examples sections)
-- [ ] T121 [P] Create docs/API.md documenting Python API for programmatic use per contracts/cli-spec.yaml (PipelineRunner, PipelineConfig classes, example usage)
+- [X] T105 [P] Add spatial binning support to src/extraction/extract.py per research.md §6 (bin_spatial() function, pre-extraction binning if config binning.spatial.enabled=True, factor=2 default)
+- [X] T106 [P] Add spectral binning support to src/wavelength/apply.py per research.md §6 (bin_spectral() function using specutils.manipulation.bin_function, post-extraction binning if config binning.spectral.enabled=True, width_angstrom=2.0 default)
+- [X] T107 [P] Implement flux calibration module src/flux_calibration/extinction.py (apply_extinction_correction() using pyKOSMOS apoextinct.dat per FR-009, optional step if config flux_calibration.extinction.enabled=True); **Constitution §VI**: Consult notebooks/ for flux calibration workflows before implementation
+- [X] T108 [P] Implement flux calibration module src/flux_calibration/sensitivity.py (compute_sensitivity_function() from standard star observations, optional step if standard_star_file provided per FR-009); **Constitution §VI**: Consult notebooks/ for sensitivity function examples before implementation
+- [X] T109 [P] Add extraction method selection to src/extraction/extract.py (implement extract_boxcar() simple aperture sum as alternative to optimal extraction, selectable via config extraction.method='optimal' or 'boxcar' per contracts/config-schema.yaml)
+- [X] T110 [P] Implement src/extraction/profile.py Moffat profile fitting as alternative to Gaussian per research.md §4 (scipy.optimize.curve_fit with Moffat function, selectable via config spatial_profile.profile_type='Moffat')
+- [X] T111 [P] Add cosmic ray detection integration to PipelineRunner.run() (call detect_cosmic_rays() from src/calibration/cosmic.py after flat correction, before trace detection, save cosmic_ray_mask in Spectrum2D per data-model.md §9)
+- [X] T112 [P] Implement uncertainty propagation throughout pipeline (read noise + Poisson noise → variance arrays in CCDData, propagate through calibrations/extraction to Spectrum1D.uncertainty per FR-014)
+- [X] T113 Create tests/fixtures/synthetic_data.py to generate synthetic KOSMOS FITS files per quickstart.md (kosmos-generate-testdata command: bias, flat, arc with HeNeAr lines, science with 1-2 galaxy traces at configurable SNR); **Note**: This is a test utility, not a production CLI feature
+- [X] T114 Create tests/integration/test_pipeline_e2e.py end-to-end test (runs full pipeline on synthetic data, validates outputs exist, checks quality metrics meet thresholds per SC-001 through SC-007)
+- [X] T115 [P] Create tests/unit/test_calibration.py (tests combine, bias, flat, cosmic modules independently with synthetic data)
+- [X] T116 [P] Create tests/unit/test_extraction.py (tests trace detection, profile fitting, sky subtraction, optimal extraction with known inputs)
+- [X] T117 [P] Create tests/unit/test_wavelength.py (tests arc line identification, line matching, polynomial fitting, wavelength application with pyKOSMOS linelists)
+- [X] T118 [P] Create tests/unit/test_quality.py (tests validation functions, metrics computation, plot generation functions)
+- [X] T119 Update README.md with comprehensive quickstart per quickstart.md test scenarios (installation, synthetic test data generation, basic reduction, interpreting outputs)
+- [X] T120 [P] Add docstrings to all public functions and classes (numpy-style docstrings with Parameters, Returns, Examples sections)
+- [X] T121 [P] Create docs/API.md documenting Python API for programmatic use per contracts/cli-spec.yaml (PipelineRunner, PipelineConfig classes, example usage)
 - [ ] T122 Run quickstart.md Test Scenario 1 validation (generate synthetic data, run kosmos-reduce, verify outputs per quickstart.md expected performance <30 minutes for 10 frames)
 - [ ] T123 Run quickstart.md Test Scenario 2 validation (faint galaxy with SNR~3.5, verify detection and extraction succeed with custom config)
 - [ ] T124 Run quickstart.md Test Scenario 3 validation (custom wavelength calibration with Krypton lamp, verify RMS <0.05 Å)
