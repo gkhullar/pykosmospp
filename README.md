@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 [![Documentation Status](https://readthedocs.org/projects/pykosmospp/badge/?version=latest)](https://pykosmospp.readthedocs.io/en/latest/)
 
-My attempts at using a Spec-Driven Development Framework with LLMs to test and augment pyKOSMOS, the spectroscopic reduction pipeline for the optical spectrograph KOSMOS at the 3.5m telescope at APO. Built upon the foundation of [**pyKOSMOS**](https://github.com/jradavenport/pykosmos) -- by **James R. A. Davenport (UWashington)**
+My attempts at using a Spec-Driven Development Framework with LLMs to test and augment pyKOSMOS, the spectroscopic reduction pipeline for the optical spectrograph KOSMOS at the 3.5m telescope at APO. Built upon the foundation of [**pyKOSMOS**](https://github.com/jradavenport/pykosmos) (by James Davenport, UWashington).
 
 *Built with modern spec-driven development and LLM assistance*
 
