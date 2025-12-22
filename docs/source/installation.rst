@@ -66,14 +66,14 @@ Using conda provides better dependency management, especially for scientific pac
 .. code-block:: bash
 
     # Create conda environment with Python 3.10
-    conda create -n pykosmos python=3.10
-    conda activate pykosmos
+    conda create -n pykosmospp python=3.10
+    conda activate pykosmospp
 
     # Install core scientific dependencies via conda
     conda install -c conda-forge astropy scipy numpy matplotlib pyyaml
 
-    # Install pyKOSMOS and remaining dependencies
-    cd pykosmos_spec_ai
+    # Install pyKOSMOS++ and remaining dependencies
+    cd pykosmospp
     pip install -e .
 
 **Advantages of conda:**
@@ -91,11 +91,11 @@ For lightweight isolation without conda:
 .. code-block:: bash
 
     # Create virtual environment
-    python3.10 -m venv venv_pykosmos
-    source venv_pykosmos/bin/activate  # On Windows: venv_pykosmos\Scripts\activate
+    python3.10 -m venv venv_pykosmospp
+    source venv_pykosmospp/bin/activate  # On Windows: venv_pykosmospp\Scripts\activate
 
-    # Install pyKOSMOS
-    cd pykosmos_spec_ai
+    # Install pyKOSMOS++
+    cd pykosmospp
     pip install -e .
 
 
@@ -139,7 +139,7 @@ Check that pyKOSMOS is correctly installed:
 .. code-block:: bash
 
     # Test import
-    python -c "import pykosmos_spec_ai; print('Installation successful!')"
+    python -c "import pykosmospp; print('Installation successful!')"
 
     # Run test suite (if dev dependencies installed)
     pytest tests/
@@ -175,8 +175,8 @@ Conda is strongly recommended for Apple Silicon. Some dependencies require Roset
     softwareupdate --install-rosetta
 
     # Use conda with osx-arm64 platform
-    conda create -n pykosmos python=3.10
-    conda activate pykosmos
+    conda create -n pykosmospp python=3.10
+    conda activate pykosmospp
     conda install -c conda-forge astropy scipy numpy matplotlib
     pip install -e .
 
@@ -236,14 +236,14 @@ Use Anaconda or Miniconda for best compatibility:
 Troubleshooting
 ---------------
 
-**Import Error: No module named 'pykosmos_spec_ai'**
+**Import Error: No module named 'pykosmospp'**
 
 Ensure you're in the correct Python environment:
 
 .. code-block:: bash
 
     which python  # Should point to venv or conda environment
-    pip list | grep pykosmos  # Should show pykosmospp
+    pip list | grep pykosmospp  # Should show pykosmospp
 
 **Compilation Errors for scipy/numpy**
 
@@ -269,8 +269,8 @@ Use virtual environment instead of system Python:
 
 .. code-block:: bash
 
-    python3.10 -m venv venv_pykosmos
-    source venv_pykosmos/bin/activate
+    python3.10 -m venv venv_pykosmospp
+    source venv_pykosmospp/bin/activate
     pip install -e .
 
 
@@ -281,7 +281,7 @@ To upgrade to the latest version:
 
 .. code-block:: bash
 
-    cd pykosmos_spec_ai
+    cd pykosmospp
     git pull origin main
     pip install -e . --upgrade
 
@@ -291,16 +291,16 @@ For major version upgrades, recreate the environment:
 
     # Conda
     conda deactivate
-    conda env remove -n pykosmos
-    conda create -n pykosmos python=3.10
-    conda activate pykosmos
+    conda env remove -n pykosmospp
+    conda create -n pykosmospp python=3.10
+    conda activate pykosmospp
     pip install -e .
 
     # Venv
     deactivate
-    rm -rf venv_pykosmos
-    python3.10 -m venv venv_pykosmos
-    source venv_pykosmos/bin/activate
+    rm -rf venv_pykosmospp
+    python3.10 -m venv venv_pykosmospp
+    source venv_pykosmospp/bin/activate
     pip install -e .
 
 
@@ -314,11 +314,11 @@ Uninstalling
 
     # Remove conda environment (if used)
     conda deactivate
-    conda env remove -n pykosmos
+    conda env remove -n pykosmospp
 
     # Remove repository (optional)
     cd ..
-    rm -rf pykosmos_spec_ai
+    rm -rf pykosmospp
 
 
 Next Steps
