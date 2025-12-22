@@ -150,7 +150,7 @@ reduced_output/
 
 ### Complete Documentation
 
-**📚 Read the Docs**: [pykosmospp.readthedocs.io](https://pykosmospp.readthedocs.io/)
+**Read the Docs**: [pykosmospp.readthedocs.io](https://pykosmospp.readthedocs.io/)
 
 #### User Guides
 
