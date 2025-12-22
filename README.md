@@ -10,7 +10,7 @@ My attempts at using a Spec-Driven Development Framework with LLMs to test and a
 
 ---
 
-## 🌌 Overview
+## Overview
 
 **pyKOSMOS++** is an AI-assisted spectroscopic reduction pipeline designed for APO-KOSMOS longslit observations. This project demonstrates modern spec-driven development practices, combining traditional astronomical data reduction techniques with LLM assistance to streamline the workflow from raw CCD images to science-ready, wavelength-calibrated 1D spectra.
 
@@ -30,19 +30,19 @@ This project extends the original pyKOSMOS with AI-assisted development, spec-dr
 
 ### What Makes pyKOSMOS++ Special?
 
-🤖 **AI-Augmented Development**: Entire pipeline built using LLM assistance (Claude Sonnet 4.5) following rigorous spec-driven methodology
+**AI-Augmented Development**: Entire pipeline built using LLM assistance (Claude Sonnet 4.5) following rigorous spec-driven methodology
 
-📐 **Spec-First Architecture**: Comprehensive specification documents drive implementation, ensuring consistency and maintainability
+**Spec-First Architecture**: Comprehensive specification documents drive implementation, ensuring consistency and maintainability
 
-🔬 **Production-Ready Pipeline**: Automated reduction from raw FITS to calibrated 1D spectra with quality assessment
+**Production-Ready Pipeline**: Automated reduction from raw FITS to calibrated 1D spectra with quality assessment
 
-📊 **Transparent & Educational**: Every reduction step documented, validated, and visualized with diagnostic plots
+**Transparent & Educational**: Every reduction step documented, validated, and visualized with diagnostic plots
 
-🧪 **Rigorously Tested**: 86% unit test coverage with physics-based validation criteria
+**Rigorously Tested**: 86% unit test coverage with physics-based validation criteria
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 ### Core Capabilities
 
@@ -56,15 +56,15 @@ This project extends the original pyKOSMOS with AI-assisted development, spec-dr
 
 ### Technical Highlights
 
-- 🎯 **BIC Model Selection**: Automatic polynomial order optimization for wavelength solutions
-- 🌌 **Sky Subtraction**: Buffer-region estimation with 3σ clipping
-- 🔥 **Cosmic Ray Rejection**: Variance-based outlier detection during extraction
-- 📈 **Profile Consistency**: Chi-squared scoring for spatial profile validation
-- 🎨 **Comprehensive Diagnostics**: 2D spectra, wavelength fits, spatial profiles, quality metrics
+- **BIC Model Selection**: Automatic polynomial order optimization for wavelength solutions
+- **Sky Subtraction**: Buffer-region estimation with 3σ clipping
+- **Cosmic Ray Rejection**: Variance-based outlier detection during extraction
+- **Profile Consistency**: Chi-squared scoring for spatial profile validation
+- **Comprehensive Diagnostics**: 2D spectra, wavelength fits, spatial profiles, quality metrics
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -136,11 +136,11 @@ reduced_output/
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 ### Complete Documentation
 
-**📖 Read the Docs**: [pykosmospp.readthedocs.io](https://pykosmospp.readthedocs.io/)
+**Read the Docs**: [pykosmospp.readthedocs.io](https://pykosmospp.readthedocs.io/)
 
 - **[Installation Guide](https://pykosmospp.readthedocs.io/en/latest/installation.html)**: Detailed setup for all platforms
 - **[Quick Start](https://pykosmospp.readthedocs.io/en/latest/quickstart.html)**: 5-minute first reduction
@@ -169,7 +169,7 @@ jupyter notebook examples/tutorial.ipynb
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 pykosmospp/
@@ -199,7 +199,7 @@ pykosmospp/
 
 ---
 
-## 🔬 Scientific Background
+## Scientific Background
 
 ### APO-KOSMOS Spectrograph
 
@@ -230,7 +230,7 @@ pyKOSMOS++ follows standard spectroscopic reduction practices:
 
 ---
 
-## 🧪 Testing & Quality
+## Testing & Quality
 
 ### Test Coverage
 
@@ -264,7 +264,7 @@ pytest tests/
 
 ---
 
-## 🎯 Spec-Driven Development
+## Spec-Driven Development
 
 pyKOSMOS++ demonstrates rigorous spec-driven methodology:
 
@@ -298,7 +298,7 @@ From `.specify/constitution.md`:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions welcome! Please follow the spec-driven workflow:
 
@@ -333,7 +333,7 @@ cd docs && make html
 
 ---
 
-## 📚 Citation
+## Citation
 
 If you use pyKOSMOS++ in your research, please cite:
 
@@ -383,7 +383,7 @@ If you use pyKOSMOS++ in your research, please cite:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
@@ -405,7 +405,7 @@ copies or substantial portions of the Software.
 
 ---
 
-## 🌟 Acknowledgments
+## Acknowledgments
 
 **Author:** Gourav Khullar (University of Washington)
 
@@ -427,7 +427,7 @@ copies or substantial portions of the Software.
 
 ---
 
-## 📞 Support & Contact
+## Support & Contact
 
 - **Issues**: [GitHub Issues](https://github.com/gkhullar/pykosmospp/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/gkhullar/pykosmospp/discussions)
@@ -436,7 +436,7 @@ copies or substantial portions of the Software.
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 ### Version 0.1.0 (Current - MVP)
 ✅ Automated calibration pipeline  
@@ -462,6 +462,6 @@ copies or substantial portions of the Software.
 
 ---
 
-**pyKOSMOS++** - Next-Generation Spectroscopic Reduction 🌠
+**pyKOSMOS++** - Next-Generation Spectroscopic Reduction
 
-*Built with 🤖 AI assistance and 🔬 scientific rigor*
+*Built with AI assistance and scientific rigor*
