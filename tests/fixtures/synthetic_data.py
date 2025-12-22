@@ -378,42 +378,45 @@ def generate_science_frame(output_path: Path, num_traces: int = 1,
     if seed is not None:
         np.random.seed(seed)
     
-    # Start with sky background
-    data = np.full(KOSMOS_SHAPE, sky_level, dtype=np.float32)
+    # Start with bias level + sky background
+    data = np.full(KOSMOS_SHAPE, KOSMOS_BIAS_LEVEL + sky_level, dtype=np.float64)
     
     # Add sky emission lines (OH airglow)
     sky_lines = [5577.34, 6300.30, 6363.78, 7316.28, 8399.17, 8430.17]
     for wavelength in sky_lines:
-        # Convert to pixel
+        # Convert to pixel (spectral axis is KOSMOS_SHAPE[1])
         central_wavelength = 5500.0
-        central_pixel = KOSMOS_SHAPE[0] / 2
+        central_pixel = KOSMOS_SHAPE[1] / 2
         pixel_pos = central_pixel + (wavelength - central_wavelength) / KOSMOS_DISPERSION
         
-        if 0 <= pixel_pos < KOSMOS_SHAPE[0]:
+        if 0 <= pixel_pos < KOSMOS_SHAPE[1]:
             intensity = np.random.uniform(200, 800)  # Sky line strength
             fwhm_spectral = 3.0
             sigma_spectral = fwhm_spectral / 2.355
             
-            x = np.arange(KOSMOS_SHAPE[0])
-            y = np.arange(KOSMOS_SHAPE[1])
+            # spectral axis is second dimension
+            spectral = np.arange(KOSMOS_SHAPE[1])
+            spatial = np.arange(KOSMOS_SHAPE[0])
             
-            spectral_profile = np.exp(-((x - pixel_pos) / sigma_spectral)**2)
-            spatial_profile = np.ones(KOSMOS_SHAPE[1])  # Uniform across slit
+            spectral_profile = np.exp(-((spectral - pixel_pos) / sigma_spectral)**2)
+            spatial_profile = np.ones(KOSMOS_SHAPE[0])  # Uniform across slit
             
-            line_data = intensity * spectral_profile[:, np.newaxis] * spatial_profile[np.newaxis, :]
+            # Build 2D: spatial[:, np.newaxis] * spectral[np.newaxis, :]
+            line_data = intensity * spatial_profile[:, np.newaxis] * spectral_profile[np.newaxis, :]
             data += line_data
     
     # Add spectral traces
     trace_positions = []
     if num_traces == 1:
-        trace_positions = [KOSMOS_SHAPE[1] / 2]
+        trace_positions = [KOSMOS_SHAPE[0] / 2]
     elif num_traces == 2:
-        trace_positions = [KOSMOS_SHAPE[1] / 2 - 30, KOSMOS_SHAPE[1] / 2 + 30]
+        trace_positions = [KOSMOS_SHAPE[0] / 2 - 30, KOSMOS_SHAPE[0] / 2 + 30]
     
     for trace_y in trace_positions:
         # Galaxy continuum spectrum (simple power law + absorption features)
-        x = np.arange(KOSMOS_SHAPE[0])
-        wavelengths = 5500 + (x - KOSMOS_SHAPE[0]/2) * KOSMOS_DISPERSION
+        # spectral axis is KOSMOS_SHAPE[1]
+        spectral_pix = np.arange(KOSMOS_SHAPE[1])
+        wavelengths = 5500 + (spectral_pix - KOSMOS_SHAPE[1]/2) * KOSMOS_DISPERSION
         
         # Continuum (decreasing toward blue)
         continuum = 1000 * (wavelengths / 5500)**(-1.5)
@@ -433,22 +436,22 @@ def generate_science_frame(output_path: Path, num_traces: int = 1,
         signal_adu = signal_electrons / KOSMOS_GAIN
         continuum = continuum / np.median(continuum) * signal_adu
         
-        # Spatial profile (Gaussian PSF)
+        # Spatial profile (Gaussian PSF) - trace_y is spatial position
         fwhm_spatial = 4.0
         sigma_spatial = fwhm_spatial / 2.355
-        y = np.arange(KOSMOS_SHAPE[1])
-        spatial_profile = np.exp(-((y - trace_y) / sigma_spatial)**2)
+        spatial_pix = np.arange(KOSMOS_SHAPE[0])
+        spatial_profile = np.exp(-((spatial_pix - trace_y) / sigma_spatial)**2)
         
-        # Add trace to data
-        trace_data = continuum[:, np.newaxis] * spatial_profile[np.newaxis, :]
+        # Add trace to data: spatial[:, np.newaxis] * spectral[np.newaxis, :]
+        trace_data = spatial_profile[:, np.newaxis] * continuum[np.newaxis, :]
         data += trace_data
     
     # Add cosmic rays
     num_cosmics = int(cosmic_ray_fraction * data.size)
-    cosmic_x = np.random.randint(0, KOSMOS_SHAPE[0], size=num_cosmics)
-    cosmic_y = np.random.randint(0, KOSMOS_SHAPE[1], size=num_cosmics)
+    cosmic_spatial = np.random.randint(0, KOSMOS_SHAPE[0], size=num_cosmics)
+    cosmic_spectral = np.random.randint(0, KOSMOS_SHAPE[1], size=num_cosmics)
     cosmic_intensity = np.random.uniform(5000, 50000, size=num_cosmics)
-    data[cosmic_x, cosmic_y] += cosmic_intensity
+    data[cosmic_spatial, cosmic_spectral] += cosmic_intensity
     
     # Add Poisson noise
     data_electrons = data * KOSMOS_GAIN
@@ -456,13 +459,15 @@ def generate_science_frame(output_path: Path, num_traces: int = 1,
     data = noisy_electrons / KOSMOS_GAIN
     
     # Add read noise
-    noise_adu = KOSMOS_READNOISE / KOSMOS_GAIN
-    data += np.random.normal(0, noise_adu, KOSMOS_SHAPE)
+    data += np.random.normal(0, KOSMOS_READNOISE, KOSMOS_SHAPE)
+    
+    # Clip to saturation and convert to int32
+    data = np.clip(data, 0, KOSMOS_SATURATE).astype(np.int32)
     
     # Create FITS
     header = create_kosmos_header('object', exposure_time=exposure_time, 
                                  object_name=object_name, airmass=airmass)
-    hdu = fits.PrimaryHDU(data=data.astype(np.float32), header=header)
+    hdu = fits.PrimaryHDU(data=data, header=header)
     hdu.writeto(output_path, overwrite=True)
     
     logger.info(f"Generated science frame: {output_path} ({num_traces} trace(s), SNR~{trace_snr})")
