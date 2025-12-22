@@ -150,39 +150,39 @@ reduced_output/
 
 ### Complete Documentation
 
-**📚 Read the Docs**: [pykosmos-spec-ai.readthedocs.io](https://pykosmos-spec-ai.readthedocs.io/)
+**📚 Read the Docs**: [pykosmospp.readthedocs.io](https://pykosmospp.readthedocs.io/)
 
 #### User Guides
 
-- **[CLI Reference](https://pykosmos-spec-ai.readthedocs.io/en/latest/user_guide/cli.html)**: Complete command-line interface documentation
-- **[Python API](https://pykosmos-spec-ai.readthedocs.io/en/latest/user_guide/python_api.html)**: Programmatic usage with examples
-- **[Configuration](https://pykosmos-spec-ai.readthedocs.io/en/latest/user_guide/configuration.html)**: Parameter reference for all pipeline stages
-- **[Output Products](https://pykosmos-spec-ai.readthedocs.io/en/latest/user_guide/output_products.html)**: FITS format specifications
+- **[CLI Reference](https://pykosmospp.readthedocs.io/en/latest/user_guide/cli.html)**: Complete command-line interface documentation
+- **[Python API](https://pykosmospp.readthedocs.io/en/latest/user_guide/python_api.html)**: Programmatic usage with examples
+- **[Configuration](https://pykosmospp.readthedocs.io/en/latest/user_guide/configuration.html)**: Parameter reference for all pipeline stages
+- **[Output Products](https://pykosmospp.readthedocs.io/en/latest/user_guide/output_products.html)**: FITS format specifications
 
 #### Getting Started
 
-- **[Installation](https://pykosmos-spec-ai.readthedocs.io/en/latest/installation.html)**: Detailed setup for all platforms
-- **[Quick Start](https://pykosmos-spec-ai.readthedocs.io/en/latest/quickstart.html)**: 5-minute first reduction
+- **[Installation](https://pykosmospp.readthedocs.io/en/latest/installation.html)**: Detailed setup for all platforms
+- **[Quick Start](https://pykosmospp.readthedocs.io/en/latest/quickstart.html)**: 5-minute first reduction
 - **[Tutorial Notebook](examples/tutorial.ipynb)**: Interactive 8-section walkthrough
 
 #### API Reference
 
-- **[Calibration Module](https://pykosmos-spec-ai.readthedocs.io/en/latest/api/calibration.html)**: Bias, flat, cosmic ray detection
-- **[Wavelength Module](https://pykosmos-spec-ai.readthedocs.io/en/latest/api/wavelength.html)**: Arc line detection and fitting
-- **[Extraction Module](https://pykosmos-spec-ai.readthedocs.io/en/latest/api/extraction.html)**: Trace detection and optimal extraction
-- **[Quality Module](https://pykosmos-spec-ai.readthedocs.io/en/latest/api/quality.html)**: Quality assessment and grading
+- **[Calibration Module](https://pykosmospp.readthedocs.io/en/latest/api/calibration.html)**: Bias, flat, cosmic ray detection
+- **[Wavelength Module](https://pykosmospp.readthedocs.io/en/latest/api/wavelength.html)**: Arc line detection and fitting
+- **[Extraction Module](https://pykosmospp.readthedocs.io/en/latest/api/extraction.html)**: Trace detection and optimal extraction
+- **[Quality Module](https://pykosmospp.readthedocs.io/en/latest/api/quality.html)**: Quality assessment and grading
 
 #### Algorithms
 
-- **[Trace Detection](https://pykosmos-spec-ai.readthedocs.io/en/latest/algorithms/trace_detection.html)**: Cross-correlation method
-- **[Wavelength Fitting](https://pykosmos-spec-ai.readthedocs.io/en/latest/algorithms/wavelength_fitting.html)**: Chebyshev polynomials with BIC
-- **[Optimal Extraction](https://pykosmos-spec-ai.readthedocs.io/en/latest/algorithms/optimal_extraction.html)**: Horne 1986 algorithm
-- **[Cosmic Ray Detection](https://pykosmos-spec-ai.readthedocs.io/en/latest/algorithms/cosmic_ray_detection.html)**: L.A.Cosmic method
+- **[Trace Detection](https://pykosmospp.readthedocs.io/en/latest/algorithms/trace_detection.html)**: Cross-correlation method
+- **[Wavelength Fitting](https://pykosmospp.readthedocs.io/en/latest/algorithms/wavelength_fitting.html)**: Chebyshev polynomials with BIC
+- **[Optimal Extraction](https://pykosmospp.readthedocs.io/en/latest/algorithms/optimal_extraction.html)**: Horne 1986 algorithm
+- **[Cosmic Ray Detection](https://pykosmospp.readthedocs.io/en/latest/algorithms/cosmic_ray_detection.html)**: L.A.Cosmic method
 
 #### Support
 
-- **[Troubleshooting](https://pykosmos-spec-ai.readthedocs.io/en/latest/troubleshooting.html)**: Common errors and solutions
-- **[Contributing](https://pykosmos-spec-ai.readthedocs.io/en/latest/contributing.html)**: Developer guide and workflow
+- **[Troubleshooting](https://pykosmospp.readthedocs.io/en/latest/troubleshooting.html)**: Common errors and solutions
+- **[Contributing](https://pykosmospp.readthedocs.io/en/latest/contributing.html)**: Developer guide and workflow
 
 
 ### Tutorial Notebook
