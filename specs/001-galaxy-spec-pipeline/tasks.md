@@ -295,12 +295,12 @@
 - [X] T110 [P] Implement src/extraction/profile.py Moffat profile fitting as alternative to Gaussian per research.md §4 (scipy.optimize.curve_fit with Moffat function, selectable via config spatial_profile.profile_type='Moffat')
 - [X] T111 [P] Add cosmic ray detection integration to PipelineRunner.run() (call detect_cosmic_rays() from src/calibration/cosmic.py after flat correction, before trace detection, save cosmic_ray_mask in Spectrum2D per data-model.md §9)
 - [X] T112 [P] Implement uncertainty propagation throughout pipeline (read noise + Poisson noise → variance arrays in CCDData, propagate through calibrations/extraction to Spectrum1D.uncertainty per FR-014)
-- [ ] T113 Create tests/fixtures/synthetic_data.py to generate synthetic KOSMOS FITS files per quickstart.md (kosmos-generate-testdata command: bias, flat, arc with HeNeAr lines, science with 1-2 galaxy traces at configurable SNR); **Note**: This is a test utility, not a production CLI feature
-- [ ] T114 Create tests/integration/test_pipeline_e2e.py end-to-end test (runs full pipeline on synthetic data, validates outputs exist, checks quality metrics meet thresholds per SC-001 through SC-007)
-- [ ] T115 [P] Create tests/unit/test_calibration.py (tests combine, bias, flat, cosmic modules independently with synthetic data)
-- [ ] T116 [P] Create tests/unit/test_extraction.py (tests trace detection, profile fitting, sky subtraction, optimal extraction with known inputs)
-- [ ] T117 [P] Create tests/unit/test_wavelength.py (tests arc line identification, line matching, polynomial fitting, wavelength application with pyKOSMOS linelists)
-- [ ] T118 [P] Create tests/unit/test_quality.py (tests validation functions, metrics computation, plot generation functions)
+- [X] T113 Create tests/fixtures/synthetic_data.py to generate synthetic KOSMOS FITS files per quickstart.md (kosmos-generate-testdata command: bias, flat, arc with HeNeAr lines, science with 1-2 galaxy traces at configurable SNR); **Note**: This is a test utility, not a production CLI feature
+- [X] T114 Create tests/integration/test_pipeline_e2e.py end-to-end test (runs full pipeline on synthetic data, validates outputs exist, checks quality metrics meet thresholds per SC-001 through SC-007)
+- [X] T115 [P] Create tests/unit/test_calibration.py (tests combine, bias, flat, cosmic modules independently with synthetic data)
+- [X] T116 [P] Create tests/unit/test_extraction.py (tests trace detection, profile fitting, sky subtraction, optimal extraction with known inputs)
+- [X] T117 [P] Create tests/unit/test_wavelength.py (tests arc line identification, line matching, polynomial fitting, wavelength application with pyKOSMOS linelists)
+- [X] T118 [P] Create tests/unit/test_quality.py (tests validation functions, metrics computation, plot generation functions)
 - [ ] T119 Update README.md with comprehensive quickstart per quickstart.md test scenarios (installation, synthetic test data generation, basic reduction, interpreting outputs)
 - [ ] T120 [P] Add docstrings to all public functions and classes (numpy-style docstrings with Parameters, Returns, Examples sections)
 - [ ] T121 [P] Create docs/API.md documenting Python API for programmatic use per contracts/cli-spec.yaml (PipelineRunner, PipelineConfig classes, example usage)
