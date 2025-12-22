@@ -405,28 +405,6 @@ copies or substantial portions of the Software.
 
 ---
 
-## Acknowledgments
-
-**Author:** Gourav Khullar (University of Washington)
-
-**Development Tools:**
-- AI Assistant: Claude Sonnet 4.5 (Anthropic)
-- Spec-Driven Framework: `.specify/` methodology
-- Testing: pytest, pytest-cov
-- Documentation: Sphinx, Read the Docs
-
-**Scientific Foundations:**
-- APO-KOSMOS instrument team
-- PypeIt spectroscopic reduction pipeline (design inspiration)
-- Horne (1986), van Dokkum (2001), and numerous other spectroscopy pioneers
-
-**Special Thanks:**
-- University of Washington Astronomy Department
-- Apache Point Observatory
-- Anthropic (Claude LLM)
-
----
-
 ## Support & Contact
 
 - **Issues**: [GitHub Issues](https://github.com/gkhullar/pykosmospp/issues)
@@ -452,16 +430,8 @@ copies or substantial portions of the Software.
 - [ ] Flux calibration using standard stars
 - [ ] Multi-object slit support
 - [ ] Performance optimization (parallel processing)
-
-### Version 1.0.0 (Future)
 - [ ] CLI with rich terminal UI
 - [ ] Web-based dashboard for quality monitoring
 - [ ] Integration with observatory data archives
 - [ ] Machine learning trace detection
 - [ ] Automated bad pixel masking
-
----
-
-**pyKOSMOS++** - Next-Generation Spectroscopic Reduction
-
-*Built with AI assistance and scientific rigor*
