@@ -1,0 +1,78 @@
+name: Documentation Build
+
+on:
+  push:
+    branches: [ main, 001-complete-documentation ]
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - '.github/workflows/docs.yml'
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[docs]"
+        pip install -r docs/requirements.txt
+        
+    - name: Build Sphinx documentation
+      run: |
+        cd docs
+        make clean
+        make html SPHINXOPTS="-W --keep-going"
+      
+    - name: Check for warnings
+      run: |
+        cd docs
+        make html 2>&1 | tee build.log
+        if grep -i "warning" build.log; then
+          echo "⚠️  Documentation build completed with warnings"
+          echo "Review warnings above - these are non-blocking but should be addressed"
+          exit 0  # Don't fail on warnings, just notify
+        else
+          echo "✓ Documentation build completed without warnings"
+        fi
+        
+    - name: Upload documentation artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: documentation-html
+        path: docs/build/html/
+        retention-days: 30
+        
+    - name: Check documentation size
+      run: |
+        DOC_SIZE=$(du -sh docs/build/html | cut -f1)
+        echo "📊 Documentation size: $DOC_SIZE"
+        
+    - name: Summary
+      if: success()
+      run: |
+        echo "## Documentation Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Documentation built successfully" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- Python version: 3.10" >> $GITHUB_STEP_SUMMARY
+        echo "- Sphinx version: $(sphinx-build --version | cut -d' ' -f2)" >> $GITHUB_STEP_SUMMARY
+        echo "- Output directory: \`docs/build/html/\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📦 Documentation artifacts uploaded for review" >> $GITHUB_STEP_SUMMARY

@@ -68,6 +68,13 @@ Quick Links
 
 .. toctree::
    :maxdepth: 2
+   :caption: Tutorials
+   :hidden:
+
+   tutorials/interactive_tutorial
+
+.. toctree::
+   :maxdepth: 2
    :caption: API Reference
    :hidden:
 

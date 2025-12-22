@@ -150,7 +150,7 @@ ab_subtraction:
     max_shift_spectral: 5
   pairing:
     match_by_time: true
-    max_time_diff: 600  # seconds (10 minutes)
+    max_time_diff: 3600  # seconds (10 minutes)
 
 # ----------------------------------------------------------------------------
 # Quality Assessment

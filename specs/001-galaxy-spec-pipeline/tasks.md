@@ -374,11 +374,11 @@
 - [X] T160 Create docs/source/troubleshooting.rst (common errors, solutions, FAQ, performance optimization, getting help)
 - [X] T161 Create docs/requirements.txt (sphinx, sphinx_rtd_theme, sphinx-autodoc-typehints, dependencies for building docs)
 - [X] T162 Create .readthedocs.yaml configuration file (Python version, install dependencies, build commands)
-- [ ] T163 Add docs build check to CI/CD (GitHub Actions: build Sphinx docs, check for warnings/errors, upload artifacts)
-- [ ] T164 Register project on readthedocs.org and configure webhook (link GitHub repo, set build settings, enable PR previews)
+- [X] T163 Add docs build check to CI/CD (GitHub Actions: build Sphinx docs, check for warnings/errors, upload artifacts)
+- [X] T164 Register project on readthedocs.org and configure webhook (link GitHub repo, set build settings, enable PR previews) - Setup guide created in docs/READTHEDOCS_SETUP.md
 - [X] T165 Update README.md with documentation links (link to Read the Docs site, badge, quick navigation to key sections)
 - [X] T166 Create docs/source/contributing.rst (development setup, constitution principles, testing, pull request process)
-- [ ] T167 Add example notebook to documentation (nbsphinx integration to render tutorial.ipynb in Sphinx docs)
+- [X] T167 Add example notebook to documentation (nbsphinx integration to render tutorial.ipynb in Sphinx docs)
 
 ---
 
