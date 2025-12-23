@@ -740,7 +740,10 @@ class WavelengthSolution:
     def __init__(self, coefficients: np.ndarray, order: int, arc_frame: 'ArcFrame',
                  n_lines_identified: int, rms_residual: float, 
                  wavelength_range: tuple, poly_type: str = 'chebyshev',
-                 pixel_range: tuple = None):
+                 pixel_range: tuple = None,
+                 calibration_method: str = 'line_matching',
+                 template_used: str = None,
+                 dtw_parameters: dict = None):
         """
         Initialize wavelength solution.
         
@@ -762,6 +765,12 @@ class WavelengthSolution:
             Polynomial type ('chebyshev', 'legendre', 'polynomial')
         pixel_range : tuple, optional
             (min_pixel, max_pixel) used for normalization. If None, uses (0, 4095)
+        calibration_method : str
+            Method used for calibration: 'line_matching' or 'dtw'
+        template_used : str, optional
+            Name of arc template file used (for DTW method)
+        dtw_parameters : dict, optional
+            DTW parameters used (e.g., peak_threshold, step_pattern)
         """
         self.coefficients = coefficients
         self.order = order
@@ -771,6 +780,15 @@ class WavelengthSolution:
         self.wavelength_range = wavelength_range
         self.poly_type = poly_type
         self.pixel_range = pixel_range if pixel_range is not None else (0, 4095)
+        
+        # Provenance tracking (Constitution Principle III)
+        self.calibration_method = calibration_method
+        self.template_used = template_used
+        self.dtw_parameters = dtw_parameters or {}
+        
+        # Timestamp
+        from datetime import datetime
+        self.timestamp = datetime.utcnow().isoformat()
         
     def wavelength(self, pixels: np.ndarray) -> np.ndarray:
         """

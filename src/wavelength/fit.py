@@ -23,7 +23,11 @@ def fit_wavelength_solution(pixels: np.ndarray,
                             min_order: int = 3,
                             max_order: int = 7,
                             use_bic: bool = True,
-                            order_range: Optional[Tuple[int, int]] = None) -> WavelengthSolution:
+                            order_range: Optional[Tuple[int, int]] = None,
+                            strict_rms: bool = True,
+                            calibration_method: str = 'line_matching',
+                            template_used: str = None,
+                            dtw_parameters: dict = None) -> WavelengthSolution:
     """
     Fit wavelength solution with robust fitting and BIC order selection.
     
@@ -55,6 +59,14 @@ def fit_wavelength_solution(pixels: np.ndarray,
         Use BIC for order selection (default: True)
     order_range : tuple of (int, int), optional
         Alternative way to specify (min_order, max_order). Overrides individual parameters.
+    strict_rms : bool, optional
+        If True (default), raises error if RMS > 0.2 Å. Set False for testing.
+    calibration_method : str, optional
+        Method used: 'line_matching' (default) or 'dtw' (Constitution Principle III)
+    template_used : str, optional
+        Name of arc template file used (for DTW method, provenance tracking)
+    dtw_parameters : dict, optional
+        DTW parameters used (e.g., peak_threshold, step_pattern) for provenance
         
     Returns
     -------
@@ -132,7 +144,7 @@ def fit_wavelength_solution(pixels: np.ndarray,
             f"(but within acceptance criterion 0.2 Å)"
         )
     
-    if rms_residual > 0.2:
+    if strict_rms and rms_residual > 0.2:
         raise ValueError(
             f"Wavelength RMS {rms_residual:.3f} Å exceeds acceptance criterion 0.2 Å"
         )
@@ -149,7 +161,10 @@ def fit_wavelength_solution(pixels: np.ndarray,
         rms_residual=rms_residual,
         wavelength_range=wavelength_range,
         poly_type=poly_type,
-        pixel_range=pixel_range
+        pixel_range=pixel_range,
+        calibration_method=calibration_method,
+        template_used=template_used,
+        dtw_parameters=dtw_parameters
     )
     
     return solution

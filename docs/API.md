@@ -187,6 +187,203 @@ print(f"  Polynomial order: {wcs.fit_order}")
 print(f"  Wavelength range: {wcs.wavelengths[0]:.1f} - {wcs.wavelengths[-1]:.1f} Å")
 ```
 
+### DTW Wavelength Identification (New in v0.2.0)
+
+#### `identify_dtw(arc_spectrum, template_waves, template_flux, peak_threshold=0.3, ...)`
+
+Identify arc line wavelengths using Dynamic Time Warping (DTW) alignment. This method is more robust than traditional line matching and **does not require an initial dispersion guess**.
+
+**Module:** `pykosmospp.wavelength.dtw`
+
+**Parameters:**
+- **arc_spectrum** (*ndarray*): 1D observed arc spectrum (flux vs pixel)
+- **template_waves** (*ndarray*): Template wavelengths (Å)
+- **template_flux** (*ndarray*): Template flux values
+- **peak_threshold** (*float*, optional): Peak detection threshold (relative to max flux). Default: 0.3
+- **min_peak_separation** (*int*, optional): Minimum pixel separation between peaks. Default: 5
+- **step_pattern** (*str*, optional): DTW step pattern. Default: 'symmetric2'
+
+**Returns:**
+- **pixel_positions** (*ndarray*): Detected peak positions in observed spectrum (sub-pixel accuracy)
+- **wavelengths** (*ndarray*): Matched wavelengths from template (Å)
+
+**Raises:**
+- **ValueError**: If fewer than 10 lines detected (required for polynomial fitting)
+
+**Example:**
+```python
+from pykosmospp.wavelength.dtw import identify_dtw
+from pykosmospp.wavelength.match import load_arc_template, get_arc_template_name
+import numpy as np
+
+# Load arc template automatically based on header
+lamp, grating, arm = get_arc_template_name('cuar', arc_frame.header)
+template_waves, template_flux = load_arc_template(lamp, grating, arm)
+
+# Collapse 2D arc to 1D spectrum
+arc_spectrum_1d = np.median(arc_frame.data, axis=1)
+
+# Perform DTW identification
+pixels, wavelengths = identify_dtw(
+    arc_spectrum_1d,
+    template_waves,
+    template_flux,
+    peak_threshold=0.3,
+    min_peak_separation=5
+)
+
+print(f"DTW identified {len(pixels)} arc lines")
+print(f"Wavelength range: {wavelengths.min():.1f}-{wavelengths.max():.1f} Å")
+```
+
+**Advantages over traditional line matching:**
+- ✅ No initial dispersion guess needed
+- ✅ More robust to spectral distortion and shift
+- ✅ Automatic wavelength range detection
+- ✅ Works with full spectrum, not discrete lines
+
+**Algorithm:** Based on pyKOSMOS DTW implementation (Davenport et al. 2023)
+
+---
+
+#### `load_arc_template(lamp, grating, arm)`
+
+Load arc lamp template spectrum from pyKOSMOS resources.
+
+**Module:** `pykosmospp.wavelength.match`
+
+**Parameters:**
+- **lamp** (*str*): Lamp type (`'Ar'`, `'Kr'`, `'Ne'`)
+- **grating** (*str*): Grating identifier (`'0.86-high'`, `'1.18-ctr'`, `'2.0-low'`)
+- **arm** (*str*): Spectrograph arm (`'Blue'`, `'Red'`)
+
+**Returns:**
+- **wavelengths** (*ndarray*): Template wavelengths (Å), sorted
+- **flux** (*ndarray*): Template flux values, sorted by wavelength
+
+**Raises:**
+- **ValueError**: If invalid lamp/grating/arm combination
+- **FileNotFoundError**: If template file not found
+
+**Example:**
+```python
+from pykosmospp.wavelength.match import load_arc_template
+
+# Load Argon blue template for 1.18 grating (standard setup)
+waves, flux = load_arc_template('Ar', '1.18-ctr', 'Blue')
+
+print(f"Template range: {waves[0]:.1f}-{waves[-1]:.1f} Å")
+print(f"Template points: {len(waves)}")
+```
+
+**Available templates:**
+- Lamps: Ar (Argon), Kr (Krypton), Ne (Neon)
+- Gratings: 0.86-high, 1.18-ctr, 2.0-low
+- Arms: Blue, Red
+- Total: 18 templates (3 lamps × 3 gratings × 2 arms)
+
+---
+
+#### `get_arc_template_name(lamp_type, header)`
+
+Auto-select appropriate arc template based on lamp type and FITS header metadata.
+
+**Module:** `pykosmospp.wavelength.match`
+
+**Parameters:**
+- **lamp_type** (*str*): Lamp type keyword from header (e.g., `'argon'`, `'henear'`, `'cuar'`)
+- **header** (*fits.Header*): FITS header containing grating/arm keywords
+
+**Returns:**
+- **lamp** (*str*): Normalized lamp name (`'Ar'`, `'Kr'`, `'Ne'`)
+- **grating** (*str*): Extracted grating identifier
+- **arm** (*str*): Extracted arm identifier
+
+**Mapping rules:**
+- `'argon'` → `'Ar'`
+- `'henear'`, `'cuar'`, `'apohenear'` → `'Ar'` (default)
+- Grating extracted from `'GRISM'` or `'GRATING'` keywords
+- Arm extracted from `'ARM'` or `'CAMID'` keywords
+- Defaults: `'1.18-ctr'` grating, `'Blue'` arm if not found
+
+**Example:**
+```python
+from pykosmospp.wavelength.match import get_arc_template_name
+from astropy.io import fits
+
+# Read arc frame header
+header = fits.getheader('arc_001.fits')
+
+# Auto-select template
+lamp, grating, arm = get_arc_template_name('cuar', header)
+
+print(f"Selected template: {lamp}{arm} grating={grating}")
+# Output: Selected template: ArBlue grating=1.18-ctr
+```
+
+---
+
+#### `fit_wavelength_solution(pixels, wavelengths, **kwargs)`
+
+Fit polynomial wavelength solution with robust sigma-clipping and BIC order selection.
+
+**Module:** `pykosmospp.wavelength.fit`
+
+**Parameters:**
+- **pixels** (*ndarray*): Pixel positions of matched arc lines
+- **wavelengths** (*ndarray*): Catalog wavelengths (Å)
+- **arc_frame** (*ArcFrame*, optional): Source arc frame for metadata. Default: None
+- **poly_type** (*str*, optional): Polynomial type. Default: `'chebyshev'`
+- **order** (*int*, optional): Polynomial order. If None, uses BIC selection. Default: None
+- **sigma_clip** (*float*, optional): Sigma clipping threshold. Default: 3.0
+- **max_iterations** (*int*, optional): Maximum clipping iterations. Default: 5
+- **min_order** (*int*, optional): Minimum order for BIC selection. Default: 3
+- **max_order** (*int*, optional): Maximum order for BIC selection. Default: 7
+- **use_bic** (*bool*, optional): Use BIC for order selection. Default: True
+- **order_range** (*tuple*, optional): Alternative to (min_order, max_order). Default: None
+- **strict_rms** (*bool*, optional): Raise error if RMS > 0.2 Å. Set False for testing. Default: True
+- **calibration_method** (*str*, optional): Method used (`'dtw'` or `'line_matching'`). Default: `'line_matching'`
+- **template_used** (*str*, optional): Template filename (for DTW provenance). Default: None
+- **dtw_parameters** (*dict*, optional): DTW parameters (for provenance tracking). Default: None
+
+**Returns:**
+- **WavelengthSolution**: Fitted solution with provenance metadata
+
+**Raises:**
+- **ValueError**: If fewer than 10 lines or RMS exceeds 0.2 Å (when strict_rms=True)
+
+**Provenance tracking (Constitution Principle III):**
+The returned `WavelengthSolution` includes:
+- `calibration_method`: Which method was used (`'dtw'` or `'line_matching'`)
+- `template_used`: Arc template filename (if DTW method)
+- `dtw_parameters`: DTW parameters used (if DTW method)
+- `timestamp`: UTC timestamp of calibration
+
+**Example:**
+```python
+from pykosmospp.wavelength.fit import fit_wavelength_solution
+from pykosmospp.wavelength.dtw import identify_dtw
+
+# After DTW identification
+pixels, waves = identify_dtw(arc_spectrum, template_waves, template_flux)
+
+# Fit with provenance tracking
+solution = fit_wavelength_solution(
+    pixels,
+    waves,
+    order_range=(3, 7),
+    sigma_clip=3.0,
+    calibration_method='dtw',
+    template_used='ArBlue1.18-ctr.spec',
+    dtw_parameters={'peak_threshold': 0.3, 'min_peak_separation': 5}
+)
+
+print(f"Method: {solution.calibration_method}")
+print(f"Template: {solution.template_used}")
+print(f"RMS: {solution.rms_residual:.4f} Å")
+print(f"Timestamp: {solution.timestamp}")
+```
+
 ---
 
 ## Trace Detection
