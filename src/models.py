@@ -224,7 +224,8 @@ class ArcFrame(RawFrame):
         
         image_type = self.header.get('IMAGETYP', '').lower()
         # Accept various arc frame identifiers
-        valid_types = ['arc', 'comp', 'comparison', 'arc lamp', 'wavelength', 'henear', 'argon', 'krypton']
+        valid_types = ['arc', 'comp', 'comparison', 'arc lamp', 'wavelength', 
+                      'henear', 'argon', 'krypton', 'thar', 'cuar', 'xenon']
         if not any(vtype in image_type for vtype in valid_types):
             # If IMAGETYP is missing or doesn't match, check OBJECT field
             object_name = self.header.get('OBJECT', '').lower()
@@ -251,11 +252,15 @@ class ArcFrame(RawFrame):
         filename_lower = self.file_path.name.lower()
         
         lamp_patterns = {
-            'henear': ['henear', 'he-ne-ar'],
+            'henear': ['henear', 'he-ne-ar', 'hene'],
+            'apohenear': ['apohenear', 'apo'],
+            'henearhres': ['henearhres', 'hires', 'highres'],
             'argon': ['argon', 'ar'],
             'krypton': ['krypton', 'kr'],
             'thar': ['thar', 'th-ar'],
             'cuar': ['cuar', 'cu-ar'],
+            'xenon': ['xenon', 'xe'],
+            'fear': ['fear', 'fe-ar'],
         }
         
         for lamp_type, patterns in lamp_patterns.items():

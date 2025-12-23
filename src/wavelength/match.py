@@ -16,7 +16,11 @@ def load_linelist(lamp_type: str, resources_dir: Path = None) -> Tuple[np.ndarra
     Parameters
     ----------
     lamp_type : str
-        Lamp type ('henear', 'argon', 'krypton', 'thar', 'cuar')
+        Lamp type. Supported types:
+        - Arc lamps: 'henear', 'apohenear', 'henearhres', 'idhenear', 'idheneart',
+          'ctiohenear', 'ctiohear', 'argon', 'krypton', 'thar', 'cuar', 'xenon', 'fear'
+        - Vacuum wavelengths: 'vacidhenear', 'vacthar'
+        - Sky lines: 'skylines', 'lowskylines', 'ohlines'
     resources_dir : Path, optional
         Path to resources directory. If None, uses package default.
         
@@ -39,13 +43,26 @@ def load_linelist(lamp_type: str, resources_dir: Path = None) -> Tuple[np.ndarra
     
     linelists_dir = resources_dir / 'linelists'
     
-    # Map lamp types to filenames
+    # Map lamp types to filenames (supports all available linelists)
     linelist_files = {
         'henear': 'apohenear.dat',
+        'apohenear': 'apohenear.dat',
         'argon': 'argon.dat',
         'krypton': 'krypton.dat',
         'thar': 'thar.dat',
         'cuar': 'cuar.dat',
+        'xenon': 'xenon.dat',
+        'fear': 'fear.dat',  # Iron-Argon
+        'henearhres': 'henearhres.dat',  # High-resolution He-Ne-Ar
+        'idhenear': 'idhenear.dat',  # Identified He-Ne-Ar
+        'idheneart': 'idhenearT.dat',  # Identified He-Ne-Ar (T variant)
+        'ctiohenear': 'ctiohenear.dat',  # CTIO He-Ne-Ar
+        'ctiohear': 'ctiohear.dat',  # CTIO He-Ar
+        'vacidhenear': 'vacidhenear.dat',  # Vacuum wavelengths He-Ne-Ar
+        'vacthar': 'vacthar.dat',  # Vacuum wavelengths Th-Ar
+        'skylines': 'skylines.dat',  # Sky emission lines
+        'lowskylines': 'lowskylines.dat',  # Low sky emission lines
+        'ohlines': 'ohlines.dat',  # OH emission lines
     }
     
     filename = linelist_files.get(lamp_type.lower())
