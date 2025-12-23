@@ -46,37 +46,37 @@ def extract_optimal(data_2d: np.ndarray,
     ----------
     Horne, K. 1986, PASP, 98, 609
     \"An Optimal Extraction Algorithm for CCD Spectroscopy\"
-    """
-    ny, nx = data_2d.shape
+    \"\"\"
+    ny_spectral, nx_spatial = data_2d.shape
     
     # Check if trace has fitted spatial profile
     if trace.spatial_profile is None:
         # Fall back to aperture extraction
         return _extract_aperture(data_2d, variance_2d, trace, aperture_width)
     
-    # Extract flux and variance for each spectral pixel
-    flux = np.zeros(nx)
-    variance = np.zeros(nx)
+    # Extract flux and variance for each spectral/Y pixel
+    flux = np.zeros(ny_spectral)
+    variance = np.zeros(ny_spectral)
     
     aperture_half = aperture_width // 2
     
-    for x_idx in range(nx):
-        # Get trace center at this spectral pixel
-        y_center = trace.spatial_positions[x_idx]
+    for y_idx in range(ny_spectral):
+        # Get trace center (X position) at this spectral/Y pixel
+        x_center = trace.spatial_positions[y_idx]
         
-        # Define aperture
-        y_start = int(max(0, y_center - aperture_half))
-        y_end = int(min(ny, y_center + aperture_half + 1))
+        # Define aperture in spatial/X direction
+        x_start = int(max(0, x_center - aperture_half))
+        x_end = int(min(nx_spatial, x_center + aperture_half + 1))
         
-        # Extract column
-        data_column = data_2d[y_start:y_end, x_idx]
-        var_column = variance_2d[y_start:y_end, x_idx]
+        # Extract row (fixed Y, varying X)
+        data_row = data_2d[y_idx, x_start:x_end]
+        var_row = variance_2d[y_idx, x_start:x_end]
         
         # Spatial positions relative to trace center
-        y_positions = np.arange(y_start, y_end) - y_center
+        x_positions = np.arange(x_start, x_end) - x_center
         
         # Evaluate spatial profile at these positions
-        profile_weights = trace.spatial_profile.evaluate(y_positions)
+        profile_weights = trace.spatial_profile.evaluate(x_positions)
         
         # Normalize profile (sum to 1)
         if profile_weights.sum() > 0:
@@ -87,7 +87,7 @@ def extract_optimal(data_2d: np.ndarray,
         
         # Optimal extraction weights (profile^2 / variance)
         # Per Horne 1986 equation
-        optimal_weights = profile_weights**2 / (var_column + 1e-10)
+        optimal_weights = profile_weights**2 / (var_row + 1e-10)
         
         # Normalize weights
         weight_sum = optimal_weights.sum()
@@ -95,11 +95,11 @@ def extract_optimal(data_2d: np.ndarray,
             optimal_weights /= weight_sum
         
         # Extract flux (weighted sum)
-        flux[x_idx] = np.sum(data_column * optimal_weights)
+        flux[y_idx] = np.sum(data_row * optimal_weights)
         
         # Propagate variance
         # Variance of weighted sum: sum(w^2 * var)
-        variance[x_idx] = np.sum(optimal_weights**2 * var_column)
+        variance[y_idx] = np.sum(optimal_weights**2 * var_row)
     
     # Create Spectrum1D
     if trace.wavelength_solution is not None:
@@ -112,7 +112,7 @@ def extract_optimal(data_2d: np.ndarray,
         )
     else:
         # Pixel-based spectrum
-        spectral_axis = np.arange(nx) * u.pixel
+        spectral_axis = np.arange(ny_spectral) * u.pixel
         spectrum = Spectrum1D(
             spectral_axis=spectral_axis,
             flux=flux * u.electron,
@@ -139,22 +139,22 @@ def _extract_aperture(data_2d: np.ndarray,
     
     Sums flux in fixed-width aperture centered on trace.
     """
-    ny, nx = data_2d.shape
+    ny_spectral, nx_spatial = data_2d.shape
     
-    flux = np.zeros(nx)
-    variance = np.zeros(nx)
+    flux = np.zeros(ny_spectral)
+    variance = np.zeros(ny_spectral)
     
     aperture_half = aperture_width // 2
     
-    for x_idx in range(nx):
-        y_center = int(trace.spatial_positions[x_idx])
+    for y_idx in range(ny_spectral):
+        x_center = int(trace.spatial_positions[y_idx])
         
-        y_start = max(0, y_center - aperture_half)
-        y_end = min(ny, y_center + aperture_half + 1)
+        x_start = max(0, x_center - aperture_half)
+        x_end = min(nx_spatial, x_center + aperture_half + 1)
         
         # Simple sum
-        flux[x_idx] = np.sum(data_2d[y_start:y_end, x_idx])
-        variance[x_idx] = np.sum(variance_2d[y_start:y_end, x_idx])
+        flux[y_idx] = np.sum(data_2d[y_idx, x_start:x_end])
+        variance[y_idx] = np.sum(variance_2d[y_idx, x_start:x_end])
     
     # Create spectrum
     if trace.wavelength_solution is not None:
@@ -165,7 +165,7 @@ def _extract_aperture(data_2d: np.ndarray,
             trace.wavelength_solution
         )
     else:
-        spectral_axis = np.arange(nx) * u.pixel
+        spectral_axis = np.arange(ny_spectral) * u.pixel
         spectrum = Spectrum1D(
             spectral_axis=spectral_axis,
             flux=flux * u.electron,
@@ -193,7 +193,7 @@ def extract_boxcar(data_2d: np.ndarray,
     Parameters
     ----------
     data_2d : np.ndarray
-        2D spectral data (spatial x spectral)
+        2D spectral data with shape (ny_spectral, nx_spatial)
     variance_2d : np.ndarray
         2D variance map
     trace : Trace
@@ -222,22 +222,22 @@ def extract_boxcar(data_2d: np.ndarray,
     >>> print(spectrum.meta['extraction_method'])
     'boxcar'
     """
-    ny, nx = data_2d.shape
+    ny_spectral, nx_spatial = data_2d.shape
     
-    flux = np.zeros(nx)
-    variance = np.zeros(nx)
+    flux = np.zeros(ny_spectral)
+    variance = np.zeros(ny_spectral)
     
     aperture_half = aperture_width // 2
     
-    for x_idx in range(nx):
-        y_center = int(trace.spatial_positions[x_idx])
+    for y_idx in range(ny_spectral):
+        x_center = int(trace.spatial_positions[y_idx])
         
-        y_start = max(0, y_center - aperture_half)
-        y_end = min(ny, y_center + aperture_half + 1)
+        x_start = max(0, x_center - aperture_half)
+        x_end = min(nx_spatial, x_center + aperture_half + 1)
         
         # Simple sum across aperture
-        flux[x_idx] = np.sum(data_2d[y_start:y_end, x_idx])
-        variance[x_idx] = np.sum(variance_2d[y_start:y_end, x_idx])
+        flux[y_idx] = np.sum(data_2d[y_idx, x_start:x_end])
+        variance[y_idx] = np.sum(variance_2d[y_idx, x_start:x_end])
     
     # Create spectrum
     if trace.wavelength_solution is not None:
@@ -248,7 +248,7 @@ def extract_boxcar(data_2d: np.ndarray,
             trace.wavelength_solution
         )
     else:
-        spectral_axis = np.arange(nx) * u.pixel
+        spectral_axis = np.arange(ny_spectral) * u.pixel
         spectrum = Spectrum1D(
             spectral_axis=spectral_axis,
             flux=flux * u.electron,
@@ -357,26 +357,26 @@ def bin_spatial(data_2d: np.ndarray,
     --------
     >>> binned_data, binned_var = bin_spatial(data_2d, variance_2d, bin_factor=2)
     >>> print(f"Original shape: {data_2d.shape}, Binned shape: {binned_data.shape}")
-    Original shape: (515, 2048), Binned shape: (257, 2048)
+    Original shape: (4096, 2148), Binned shape: (4096, 1074)
     """
-    ny, nx = data_2d.shape
+    ny_spectral, nx_spatial = data_2d.shape
     
-    # Calculate new spatial size
-    ny_binned = ny // bin_factor
+    # Calculate new spatial size (binning along X axis)
+    nx_binned = nx_spatial // bin_factor
     
     # Reshape and sum spatial pixels
     # Trim to multiple of bin_factor
-    ny_trim = ny_binned * bin_factor
-    data_trimmed = data_2d[:ny_trim, :]
+    nx_trim = nx_binned * bin_factor
+    data_trimmed = data_2d[:, :nx_trim]
     
-    # Reshape to (ny_binned, bin_factor, nx) and sum along bin_factor axis
-    binned_data = data_trimmed.reshape(ny_binned, bin_factor, nx).sum(axis=1)
+    # Reshape to (ny_spectral, nx_binned, bin_factor) and sum along bin_factor axis
+    binned_data = data_trimmed.reshape(ny_spectral, nx_binned, bin_factor).sum(axis=2)
     
     # Propagate variance if provided
     if variance_2d is not None:
-        variance_trimmed = variance_2d[:ny_trim, :]
+        variance_trimmed = variance_2d[:, :nx_trim]
         # Variance sums when adding (not averaging)
-        binned_variance = variance_trimmed.reshape(ny_binned, bin_factor, nx).sum(axis=1)
+        binned_variance = variance_trimmed.reshape(ny_spectral, nx_binned, bin_factor).sum(axis=2)
         return binned_data, binned_variance
     else:
         return binned_data, None

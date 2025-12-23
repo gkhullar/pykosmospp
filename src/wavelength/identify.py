@@ -39,8 +39,10 @@ def detect_arc_lines(arc_data: CCDData,
     intensities : np.ndarray
         Intensities (heights) of detected lines
     """
-    # Collapse 2D arc to 1D spectrum (median along spatial axis)
-    spectrum_1d = np.median(arc_data.data, axis=0)
+    # Collapse 2D arc to 1D spectrum (median along spatial/X axis)
+    # Arc frame: X=spatial (horizontal), Y=spectral/wavelength (vertical)
+    # Emission lines run vertically, uniformly illuminated horizontally
+    spectrum_1d = np.median(arc_data.data, axis=1)  # Collapse along spatial axis
     
     # Estimate continuum level (robust median with sigma-clipping)
     continuum = np.median(spectrum_1d)

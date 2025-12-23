@@ -49,14 +49,15 @@ def fit_spatial_profile(data_2d: np.ndarray,
     """
     from ..models import SpatialProfile
     
-    ny, nx = data_2d.shape
+    # Shape: data_2d[y, x] where x=spatial, y=spectral/wavelength
+    ny_spectral, nx_spatial = data_2d.shape
     
-    # Select continuum regions (low spectral gradient)
-    spectral_gradient = np.abs(np.gradient(data_2d, axis=1))
-    gradient_median = np.median(spectral_gradient, axis=0)
+    # Select continuum regions (low spectral gradient along Y axis)
+    spectral_gradient = np.abs(np.gradient(data_2d, axis=0))  # Gradient along Y (spectral)
+    gradient_median = np.median(spectral_gradient, axis=1)  # Median across spatial (X)
     
-    # Use pixels with lowest gradient (continuum)
-    n_continuum = int(continuum_fraction * nx)
+    # Use spectral pixels with lowest gradient (continuum)
+    n_continuum = int(continuum_fraction * ny_spectral)
     continuum_indices = np.argsort(gradient_median)[:n_continuum]
     
     # Extract spatial profiles at continuum wavelengths
@@ -64,16 +65,16 @@ def fit_spatial_profile(data_2d: np.ndarray,
     profiles = []
     weights = []
     
-    for x_idx in continuum_indices:
-        # Get trace center at this spectral pixel
-        y_center = int(trace.spatial_positions[x_idx])
+    for y_idx in continuum_indices:
+        # Get trace center (X position) at this spectral/Y pixel
+        x_center = int(trace.spatial_positions[y_idx])
         
-        # Extract aperture
-        y_start = max(0, y_center - aperture_half)
-        y_end = min(ny, y_center + aperture_half + 1)
+        # Extract aperture in spatial/X direction
+        x_start = max(0, x_center - aperture_half)
+        x_end = min(nx_spatial, x_center + aperture_half + 1)
         
-        profile = data_2d[y_start:y_end, x_idx]
-        variance = variance_2d[y_start:y_end, x_idx]
+        profile = data_2d[y_idx, x_start:x_end]  # Extract along X at fixed Y
+        variance = variance_2d[y_idx, x_start:x_end]
         
         # Weight by inverse variance
         weight = 1.0 / np.sqrt(variance + 1e-10)

@@ -30,11 +30,12 @@ def estimate_sky_background(data_2d: np.ndarray,
     Parameters
     ----------
     data_2d : np.ndarray
-        2D spectral data (spatial x spectral)
+        2D spectral data with shape (ny_spectral, nx_spatial)
+        Array indexing: data_2d[y, x] where Y=spectral/wavelength, X=spatial
     traces : List[Trace]
         List of detected traces
     sky_buffer : int, optional
-        Buffer pixels from trace edges (default: 30)
+        Buffer pixels from trace edges in spatial direction (default: 30)
     sigma_clip : float, optional
         Sigma clipping threshold (default: 3.0)
     mask : np.ndarray, optional
@@ -45,37 +46,37 @@ def estimate_sky_background(data_2d: np.ndarray,
     np.ndarray
         Sky background 2D array (same shape as input)
     """
-    ny, nx = data_2d.shape
+    ny_spectral, nx_spatial = data_2d.shape
     
     if mask is None:
         mask = np.zeros_like(data_2d, dtype=bool)
     
-    # Create trace mask (regions containing traces)
-    trace_mask = np.zeros((ny, nx), dtype=bool)
+    # Create trace mask (regions containing traces in spatial/X direction)
+    trace_mask = np.zeros((ny_spectral, nx_spatial), dtype=bool)
     
     for trace in traces:
-        for x_idx, y_center in enumerate(trace.spatial_positions):
-            y_center = int(y_center)
-            y_start = max(0, y_center - sky_buffer)
-            y_end = min(ny, y_center + sky_buffer + 1)
-            trace_mask[y_start:y_end, x_idx] = True
+        for y_idx, x_center in enumerate(trace.spatial_positions):
+            x_center = int(x_center)
+            x_start = max(0, x_center - sky_buffer)
+            x_end = min(nx_spatial, x_center + sky_buffer + 1)
+            trace_mask[y_idx, x_start:x_end] = True
     
     # Sky regions are where trace_mask is False
     sky_mask = trace_mask | mask
     
-    # Estimate sky for each spectral pixel
-    sky_spectrum = np.zeros(nx)
+    # Estimate sky for each spectral/Y pixel
+    sky_spectrum = np.zeros(ny_spectral)
     
-    for x_idx in range(nx):
-        sky_column = data_2d[:, x_idx]
-        column_mask = sky_mask[:, x_idx]
+    for y_idx in range(ny_spectral):
+        sky_row = data_2d[y_idx, :]  # Extract row at fixed Y
+        row_mask = sky_mask[y_idx, :]
         
-        # Select sky pixels
-        sky_pixels = sky_column[~column_mask]
+        # Select sky pixels (in spatial/X direction)
+        sky_pixels = sky_row[~row_mask]
         
         if len(sky_pixels) < 5:
-            # Not enough sky pixels, use median of entire column
-            sky_spectrum[x_idx] = np.median(sky_column[~mask[:, x_idx]])
+            # Not enough sky pixels, use median of entire row
+            sky_spectrum[y_idx] = np.median(sky_row[~mask[y_idx, :]])
         else:
             # Sigma-clipped median
             _, median, _ = sigma_clipped_stats(
@@ -83,9 +84,9 @@ def estimate_sky_background(data_2d: np.ndarray,
                 sigma=sigma_clip,
                 maxiters=3
             )
-            sky_spectrum[x_idx] = median
+            sky_spectrum[y_idx] = median
     
-    # Broadcast to 2D
-    sky_2d = np.tile(sky_spectrum, (ny, 1))
+    # Broadcast to 2D (repeat spectrum across spatial/X direction)
+    sky_2d = np.tile(sky_spectrum[:, np.newaxis], (1, nx_spatial))
     
     return sky_2d

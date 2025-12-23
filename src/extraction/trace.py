@@ -53,27 +53,28 @@ def detect_traces_cross_correlation(data_2d: np.ndarray,
     """
     from ..models import Trace
     
-    ny, nx = data_2d.shape
+    # Shape: data_2d[y, x] where x=spatial (horizontal), y=spectral (vertical)
+    ny_spectral, nx_spatial = data_2d.shape
     
     if mask is None:
         mask = np.zeros_like(data_2d, dtype=bool)
     
-    # Create emission line mask via gradient threshold
+    # Create emission line mask via gradient threshold along spectral/Y axis
     # High gradients indicate emission/absorption features
-    spectral_gradient = np.abs(np.gradient(data_2d, axis=1))
+    spectral_gradient = np.abs(np.gradient(data_2d, axis=0))  # Gradient along Y (spectral)
     gradient_threshold = exclude_emission_gradient * np.nanmedian(spectral_gradient)
     emission_mask = spectral_gradient > gradient_threshold
     
     # Combined mask
     full_mask = mask | emission_mask
     
-    # Collapse along spectral axis (median of unmasked continuum)
+    # Collapse along spectral/Y axis to get spatial profile
     data_masked = np.ma.masked_array(data_2d, mask=full_mask)
-    spatial_profile = np.ma.median(data_masked, axis=1).filled(0)
+    spatial_profile = np.ma.median(data_masked, axis=0).filled(0)  # Collapse along Y
     
     # Estimate noise from variance
     variance_masked = np.ma.masked_array(variance_2d, mask=full_mask)
-    noise_profile = np.sqrt(np.ma.median(variance_masked, axis=1).filled(1))
+    noise_profile = np.sqrt(np.ma.median(variance_masked, axis=0).filled(1))
     
     # Create Gaussian kernel for cross-correlation
     sigma = expected_fwhm / 2.355  # FWHM to sigma
@@ -111,13 +112,14 @@ def detect_traces_cross_correlation(data_2d: np.ndarray,
         peak_indices = peak_indices[:max_traces]
         peak_snrs = peak_snrs[:max_traces]
     
-    # For each detected peak, trace spatial position along dispersion
+    # For each detected peak, trace spatial position along spectral/Y axis
     traces = []
-    spectral_pixels = np.arange(nx)
+    spectral_pixels = np.arange(ny_spectral)  # Y pixels (spectral direction)
     
-    for trace_id, (peak_y, peak_snr) in enumerate(zip(peak_indices, peak_snrs)):
-        # Trace center position along dispersion axis
-        # Use centroid in window around peak for each spectral pixel
+    for trace_id, (peak_x, peak_snr) in enumerate(zip(peak_indices, peak_snrs)):
+        # Trace center position along spectral/Y axis
+        # peak_x is the spatial position (X coordinate) where object was found
+        # Use centroid in window around peak for each spectral/Y pixel
         spatial_positions = []
         
         window_half = int(2 * expected_fwhm)
