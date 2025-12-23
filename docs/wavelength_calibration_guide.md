@@ -1,6 +1,6 @@
-# Wavelength Calibration User Guide
+# Comprehensive Wavelength Calibration Guide
 
-**pyKOSMOS++ v0.2.0**  
+**pyKOSMOS++ v0.2.1**  
 **Constitution Compliance: Principle VI (Learning Resources)**
 
 ---

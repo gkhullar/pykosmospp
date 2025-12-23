@@ -16,7 +16,7 @@ My attempts at using a Spec-Driven Development Framework with LLMs to test and a
 **pyKOSMOS++** is an AI-assisted spectroscopic reduction pipeline designed for APO-KOSMOS longslit observations. This project demonstrates modern spec-driven development practices, combining traditional astronomical data reduction techniques with LLM assistance to streamline the workflow from raw CCD images to science-ready, wavelength-calibrated 1D spectra.
 
 **Author:** Gourav Khullar (University of Washington)
-**Version:** 0.1.0  
+**Version:** 0.2.1  
 
 ### Built Upon pyKOSMOS
 
@@ -461,9 +461,17 @@ copies or substantial portions of the Software.
 ✅ Quality assessment and grading  
 ✅ Batch processing mode  
 ✅ Comprehensive documentation  
+✅ DTW wavelength calibration (v0.2.1)
+✅ Constitution-compliant test suite (v0.2.1)
 
-### Version 0.2.0 (Planned)
-- [ ] Interactive trace selection GUI
+### Version 0.2.1 (Released December 22, 2025)
+- [x] DTW wavelength calibration implementation
+- [x] Test suite stabilization (52 passed, 58 documented/skipped)
+- [x] Comprehensive issue tracking (KNOWN_ISSUES.md)
+- [x] API alignment and import fixes
+
+### Version 0.2.2+ (Planned)
+- [ ] Fix cosmic ray detection thresholds
 - [ ] Enhanced wavelength calibration (multiple arc lamps)
 - [ ] Flux calibration using standard stars
 - [ ] Multi-object slit support

@@ -187,7 +187,7 @@ print(f"  Polynomial order: {wcs.fit_order}")
 print(f"  Wavelength range: {wcs.wavelengths[0]:.1f} - {wcs.wavelengths[-1]:.1f} Å")
 ```
 
-### DTW Wavelength Identification (New in v0.2.0)
+### DTW Wavelength Identification (New in v0.2.1)
 
 #### `identify_dtw(arc_spectrum, template_waves, template_flux, peak_threshold=0.3, ...)`
 

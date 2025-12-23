@@ -16,7 +16,7 @@ Main components:
 See documentation at: specs/001-galaxy-spec-pipeline/
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.1"
 __author__ = "APO KOSMOS Team"
 
 # Package-level imports will be added as modules are implemented
