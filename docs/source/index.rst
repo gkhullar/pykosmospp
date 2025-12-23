@@ -28,21 +28,21 @@ and follows spectroscopic reduction standards established by pyKOSMOS and its pr
 Key Features
 ------------
 
-✨ **Automated Calibration**: Master bias and flat creation with validation
+**Automated Calibration**: Master bias and flat creation with validation
 
-🌈 **Wavelength Calibration**: Arc line detection, catalog matching, and polynomial fitting (RMS <0.2Å)
+**Wavelength Calibration**: Arc line detection, catalog matching, and polynomial fitting (RMS <0.2Å)
 
-📊 **Trace Detection**: Cross-correlation with Gaussian templates for robust trace identification
+**Trace Detection**: Cross-correlation with Gaussian templates for robust trace identification
 
-🔬 **Optimal Extraction**: Variance-weighted extraction with cosmic ray rejection
+**Optimal Extraction**: Variance-weighted extraction with cosmic ray rejection
 
-📈 **Quality Assessment**: SNR computation, profile consistency, and grading (Excellent/Good/Fair/Poor)
+**Quality Assessment**: SNR computation, profile consistency, and grading (Excellent/Good/Fair/Poor)
 
-🚀 **Batch Processing**: Automated pipeline for multiple observations
+**Batch Processing**: Automated pipeline for multiple observations
 
-🧪 **Interactive Mode**: Visual trace selection and parameter tuning
+**Interactive Mode**: Visual trace selection and parameter tuning
 
-📝 **Comprehensive Documentation**: Tutorial notebook, user guides, and API reference
+**Comprehensive Documentation**: Tutorial notebook, user guides, and API reference
 
 
 Quick Links

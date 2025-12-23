@@ -114,7 +114,7 @@ wavelength:
   sigma_clip: 3.0
   max_iterations: 5
   line_identification:
-    wavelength_range: [3500, 7500]  # Angstroms
+    wavelength_range: [5000, 9500]  # Angstroms
     detection_threshold: 5.0
     match_tolerance: 2.0
   bic:

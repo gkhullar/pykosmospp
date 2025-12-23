@@ -124,25 +124,25 @@ def detect_traces_cross_correlation(data_2d: np.ndarray,
         
         window_half = int(2 * expected_fwhm)
         
-        for x in spectral_pixels:
+        for y in spectral_pixels:
             # Extract spatial column
-            y_start = max(0, peak_y - window_half)
-            y_end = min(ny, peak_y + window_half + 1)
+            x_start = max(0, peak_x - window_half)
+            x_end = min(nx_spatial, peak_x + window_half + 1)
             
-            column = data_2d[y_start:y_end, x]
+            column = data_2d[y, x_start:x_end]
             
             # Skip if masked
-            if mask[y_start:y_end, x].all():
-                spatial_positions.append(float(peak_y))
+            if mask[y, x_start:x_end].all():
+                spatial_positions.append(float(peak_x))
                 continue
             
             # Compute centroid
-            y_positions = np.arange(y_start, y_end)
+            x_positions = np.arange(x_start, x_end)
             if np.sum(column) > 0:
-                centroid = np.sum(y_positions * column) / np.sum(column)
+                centroid = np.sum(x_positions * column) / np.sum(column)
                 spatial_positions.append(centroid)
             else:
-                spatial_positions.append(float(peak_y))
+                spatial_positions.append(float(peak_x))
         
         # Create Trace object
         trace = Trace(

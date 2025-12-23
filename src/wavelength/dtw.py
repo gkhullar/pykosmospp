@@ -31,7 +31,8 @@ def identify_dtw(arc_spectrum: np.ndarray,
                 upsample_factor: int = 5,
                 peak_spline: bool = False,
                 min_peak_separation: int = 5,
-                peak_threshold: float = 0.3) -> Tuple[np.ndarray, np.ndarray]:
+                peak_threshold: float = 0.3,
+                reverse_dispersion: bool = False) -> Tuple[np.ndarray, np.ndarray]:
     """
     Identify arc line wavelengths using Dynamic Time Warping.
     
@@ -74,6 +75,10 @@ def identify_dtw(arc_spectrum: np.ndarray,
         Minimum separation between peaks in pixels (default: 5)
     peak_threshold : float, optional
         Relative threshold for peak detection (0-1) (default: 0.3)
+    reverse_dispersion : bool, optional
+        If True, flip arc spectrum before DTW to handle decreasing wavelength
+        with increasing pixel (e.g., KOSMOS Red arm). Template wavelengths
+        are assumed to increase. (default: False)
         
     Returns
     -------
@@ -119,6 +124,12 @@ def identify_dtw(arc_spectrum: np.ndarray,
             f"Template wavelength and flux arrays must have same length: "
             f"{len(template_wavelengths)} vs {len(template_flux)}"
         )
+    
+    # Handle reverse dispersion (wavelength decreases with increasing pixel)
+    # This is common for spectrographs where red is at low pixels, blue at high pixels
+    original_spectrum_length = len(arc_spectrum)
+    if reverse_dispersion:
+        arc_spectrum = arc_spectrum[::-1].copy()  # Flip spectrum
     
     # Normalize spectra for DTW
     arc_norm = _normalize_spectrum(arc_spectrum)
@@ -196,6 +207,13 @@ def identify_dtw(arc_spectrum: np.ndarray,
     valid = (wavelengths >= template_wavelengths.min()) & (wavelengths <= template_wavelengths.max())
     pixel_positions = pixel_positions[valid]
     wavelengths = wavelengths[valid]
+    
+    # If we flipped the spectrum, un-flip the pixel positions AND reverse the wavelength array
+    # After flipping, the pixel-wavelength pairs are in reversed order
+    if reverse_dispersion:
+        pixel_positions = (original_spectrum_length - 1) - pixel_positions
+        # Reverse the wavelength array to match the un-flipped pixel positions
+        wavelengths = wavelengths[::-1]
     
     if len(pixel_positions) < 10:
         raise ValueError(
@@ -300,3 +318,94 @@ def _find_peaks_spline(spectrum: np.ndarray,
             refined_peaks.append(float(peak))
     
     return np.array(refined_peaks)
+
+
+def identify_dtw_multilamp(arc_spectrum: np.ndarray,
+                           lamp_types: list,
+                           grating: str,
+                           arm: str,
+                           peak_threshold: float = 0.3,
+                           min_peak_separation: int = 5,
+                           reverse_dispersion: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Multi-lamp DTW wavelength identification.
+    
+    Combines multiple arc lamp templates (e.g., Ar, Kr, Ne) into a single
+    composite template for comprehensive wavelength coverage. This is useful
+    when the arc frame contains light from multiple lamps simultaneously.
+    
+    Parameters
+    ----------
+    arc_spectrum : np.ndarray
+        1D arc spectrum to calibrate
+    lamp_types : list of str
+        List of lamp types to combine (e.g., ['Ar', 'Kr', 'Ne'])
+    grating : str
+        Grating setting (e.g., '2.0-low')
+    arm : str
+        Spectrograph arm ('Red' or 'Blue')
+    peak_threshold : float, optional
+        Peak detection threshold (default: 0.3)
+    min_peak_separation : int, optional
+        Minimum separation between peaks in pixels (default: 5)
+    reverse_dispersion : bool, optional
+        Flip spectrum for red-at-low-pixels geometry (default: False)
+        
+    Returns
+    -------
+    pixel_positions : np.ndarray
+        Pixel positions of identified lines
+    wavelengths : np.ndarray
+        Wavelengths of identified lines (Angstroms)
+        
+    Notes
+    -----
+    The templates are combined by summing their normalized flux values
+    at each wavelength point. This creates a composite template that
+    contains emission lines from all lamps.
+    
+    Examples
+    --------
+    >>> # For He-Ne-Ar lamp arc frame
+    >>> pixels, waves = identify_dtw_multilamp(
+    ...     arc_spectrum, ['Ar', 'Kr', 'Ne'],
+    ...     grating='2.0-low', arm='Red',
+    ...     reverse_dispersion=True
+    ... )
+    """
+    from .match import load_arc_template
+    
+    # Load all templates
+    templates = []
+    for lamp in lamp_types:
+        waves, flux = load_arc_template(lamp, grating, arm)
+        templates.append((waves, flux))
+    
+    # Find common wavelength range
+    all_waves = [t[0] for t in templates]
+    wave_min = max(w.min() for w in all_waves)
+    wave_max = min(w.max() for w in all_waves)
+    
+    # Create common wavelength grid
+    n_points = len(templates[0][0])
+    common_waves = np.linspace(wave_min, wave_max, n_points)
+    
+    # Interpolate all templates to common grid and sum
+    composite_flux = np.zeros(n_points)
+    for waves, flux in templates:
+        from scipy.interpolate import interp1d
+        interp = interp1d(waves, flux, kind='cubic', fill_value=0, bounds_error=False)
+        composite_flux += interp(common_waves)
+    
+    # Normalize composite
+    composite_flux = _normalize_spectrum(composite_flux)
+    
+    # Run DTW with composite template
+    return identify_dtw(
+        arc_spectrum,
+        common_waves,
+        composite_flux,
+        peak_threshold=peak_threshold,
+        min_peak_separation=min_peak_separation,
+        reverse_dispersion=reverse_dispersion
+    )

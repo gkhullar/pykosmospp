@@ -9,6 +9,8 @@ Constitution §VI: Consult notebooks/ for wavelength fitting workflows.
 from typing import Tuple, Optional
 import numpy as np
 from numpy.polynomial import chebyshev
+from scipy.interpolate import PchipInterpolator, UnivariateSpline
+from scipy.optimize import minimize
 
 from ..models import WavelengthSolution, ArcFrame
 
@@ -27,7 +29,10 @@ def fit_wavelength_solution(pixels: np.ndarray,
                             strict_rms: bool = True,
                             calibration_method: str = 'line_matching',
                             template_used: str = None,
-                            dtw_parameters: dict = None) -> WavelengthSolution:
+                            dtw_parameters: dict = None,
+                            monotonic: bool = False,
+                            spline_order: int = 3,
+                            spline_smoothing: Optional[float] = None) -> WavelengthSolution:
     """
     Fit wavelength solution with robust fitting and BIC order selection.
     
@@ -67,6 +72,18 @@ def fit_wavelength_solution(pixels: np.ndarray,
         Name of arc template file used (for DTW method, provenance tracking)
     dtw_parameters : dict, optional
         DTW parameters used (e.g., peak_threshold, step_pattern) for provenance
+    monotonic : bool, optional
+        If True, use monotonic smoothing spline instead of polynomial.
+        Uses UnivariateSpline with automatic smoothing factor.
+        Ensures wavelength is strictly monotonic (checks derivative).
+        Recommended for extrapolation beyond calibrated region.
+    spline_order : int, optional
+        Spline order (degree) for monotonic spline (default: 3 for cubic).
+        Can use 3 (cubic) or 5 (quintic) for smooth fits.
+    spline_smoothing : float, optional
+        Smoothing factor for spline. If None, auto-determined as n_points * 0.5.
+        Higher values = smoother fit with larger residuals.
+        Lower values = closer fit to data points.
         
     Returns
     -------
@@ -85,22 +102,84 @@ def fit_wavelength_solution(pixels: np.ndarray,
     if len(pixels) < 10:
         raise ValueError(f"Need at least 10 matched lines, got {len(pixels)}")
     
-    # Determine polynomial order
-    if order is None and use_bic:
+    # Determine polynomial order (not used for monotonic spline)
+    if order is None and use_bic and not monotonic:
         order = _select_order_by_bic(pixels, wavelengths, min_order, max_order, poly_type)
     elif order is None:
-        order = 5  # Default
+        order = 5 if not monotonic else 3  # Lower default for spline
+    
+    # For monotonic spline, use UnivariateSpline with automatic data extent detection
+    if monotonic:
+        poly_type = 'spline'  # Override poly_type for monotonic smoothing spline
+        order = spline_order  # Use spline_order parameter
     
     # Normalize pixels for Chebyshev
     pix_min, pix_max = pixels.min(), pixels.max()
     pix_norm = 2.0 * (pixels - pix_min) / (pix_max - pix_min) - 1.0
     
+    # Detect safe extrapolation range (where arc data actually exists)
+    # Add safety margin: only extrapolate ~200-500 pixels beyond last calibration point
+    safe_extrapolation_margin = 300  # pixels beyond last calibrated point
+    pix_extrapolate_max = pix_max + safe_extrapolation_margin
+    
     # Iterative sigma-clipped fitting
     mask = np.ones(len(pixels), dtype=bool)
     
     for iteration in range(max_iterations):
-        # Fit polynomial to unmasked points
-        if poly_type == 'chebyshev':
+        # Fit polynomial or spline to unmasked points
+        if monotonic:
+            # Use UnivariateSpline with smoothing for proper fit (not interpolation)
+            pix_masked = pixels[mask]
+            wave_masked = wavelengths[mask]
+            n_points = len(pix_masked)
+            
+            # Determine smoothing factor
+            if spline_smoothing is None:
+                # Auto-determine: balance between fit quality and smoothness
+                # Higher smoothing = smoother curve, more likely to be monotonic
+                # Start with s ~ 1.0 * n_points for significant smoothing
+                s = 1.0 * n_points
+            else:
+                s = spline_smoothing
+            
+            # Fit smoothing spline with specified order (3=cubic, 5=quintic)
+            try:
+                spline = UnivariateSpline(pix_masked, wave_masked, 
+                                         s=s, k=min(order, n_points-1), ext=0)
+                
+                # Check monotonicity by evaluating derivative
+                # For KOSMOS Red: wavelength decreases with pixel (dλ/dpix < 0)
+                test_pixels = np.linspace(pix_masked.min(), pix_masked.max(), 100)
+                derivatives = spline.derivative()(test_pixels)
+                
+                is_monotonic = np.all(derivatives < 0)  # Should be decreasing
+                
+                if not is_monotonic:
+                    # Not monotonic - reduce smoothing and try again
+                    s_reduced = s * 0.1
+                    spline = UnivariateSpline(pix_masked, wave_masked,
+                                            s=s_reduced, k=min(order, n_points-1), ext=0)
+                    derivatives = spline.derivative()(test_pixels)
+                    is_monotonic = np.all(derivatives < 0)
+                    
+                    if not is_monotonic:
+                        # Still not monotonic - use PCHIP as guaranteed monotonic fallback
+                        print(f"  Warning: Spline not monotonic even with reduced smoothing, using PCHIP")
+                        spline = PchipInterpolator(pix_masked, wave_masked, extrapolate=True)
+                        s = 0  # PCHIP is interpolating (no smoothing)
+                
+                fitted_waves = spline(pixels)
+                coeffs = spline  # Store spline object
+                
+            except Exception as e:
+                # Fallback to PCHIP if spline fitting fails
+                print(f"  Warning: Spline fitting failed ({e}), using PCHIP")
+                spline = PchipInterpolator(pix_masked, wave_masked, extrapolate=True)
+                fitted_waves = spline(pixels)
+                coeffs = spline
+                s = 0
+                
+        elif poly_type == 'chebyshev':
             coeffs = chebyshev.chebfit(pix_norm[mask], wavelengths[mask], order)
             fitted_waves = chebyshev.chebval(pix_norm, coeffs)
         else:
@@ -153,6 +232,12 @@ def fit_wavelength_solution(pixels: np.ndarray,
     wavelength_range = (float(wavelengths.min()), float(wavelengths.max()))
     pixel_range = (float(pix_min), float(pix_max))
     
+    # Store safe extrapolation limit for spline
+    if monotonic:
+        pixel_range_extrap = (float(pix_min), float(pix_extrapolate_max))
+    else:
+        pixel_range_extrap = pixel_range
+    
     solution = WavelengthSolution(
         coefficients=coeffs,
         order=order,
@@ -161,7 +246,7 @@ def fit_wavelength_solution(pixels: np.ndarray,
         rms_residual=rms_residual,
         wavelength_range=wavelength_range,
         poly_type=poly_type,
-        pixel_range=pixel_range,
+        pixel_range=pixel_range_extrap,  # Use extrapolation limit
         calibration_method=calibration_method,
         template_used=template_used,
         dtw_parameters=dtw_parameters

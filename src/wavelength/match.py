@@ -101,7 +101,9 @@ def load_arc_template(lamp_type: str,
         raise ValueError(f"Failed to load arc template {filepath}: {e}")
 
 
-def get_arc_template_name(lamp_type: str, header: Dict = None) -> Tuple[str, str, str]:
+def get_arc_template_name(lamp_type: str, header: Dict = None, 
+                          default_grating: str = '2-low', 
+                          default_arm: str = 'Red') -> Tuple[str, str, str]:
     """
     Automatically select appropriate arc template based on observation metadata.
     
@@ -111,6 +113,10 @@ def get_arc_template_name(lamp_type: str, header: Dict = None) -> Tuple[str, str
         Lamp type keyword (e.g., 'argon', 'henear', 'cuar')
     header : dict, optional
         FITS header with grating/arm information
+    default_grating : str, optional
+        Default grating to use if not found in header (default: '2-low')
+    default_arm : str, optional
+        Default spectrograph arm if not found in header (default: 'Red')
         
     Returns
     -------
@@ -123,7 +129,7 @@ def get_arc_template_name(lamp_type: str, header: Dict = None) -> Tuple[str, str
         
     Notes
     -----
-    - If header unavailable, uses default: '1.18-ctr', 'Blue'
+    - If header unavailable, uses provided defaults (default: '2-low', 'Red')
     - Lamp type mapping:
         * 'argon', 'ar' -> 'Ar'
         * 'krypton', 'kr' -> 'Kr'
@@ -146,25 +152,32 @@ def get_arc_template_name(lamp_type: str, header: Dict = None) -> Tuple[str, str
     template_lamp = lamp_map.get(lamp_type.lower(), 'Ar')  # Default to Argon
     
     # Extract grating and arm from header if available
-    grating = '1.18-ctr'  # Default
-    arm = 'Blue'  # Default
+    grating = default_grating  # Use provided default
+    arm = default_arm  # Use provided default
     
     if header is not None:
         # Try to extract grating info from header
         grating_keyword = header.get('GRATING', header.get('GRISM', ''))
-        if '0.86' in str(grating_keyword) or 'high' in str(grating_keyword).lower():
-            grating = '0.86-high'
-        elif '2.0' in str(grating_keyword) or 'low' in str(grating_keyword).lower():
-            grating = '2.0-low'
-        else:
-            grating = '1.18-ctr'
+        if grating_keyword and str(grating_keyword).strip() and str(grating_keyword).lower() != 'none':
+            # Only override default if header has meaningful value
+            grating_str = str(grating_keyword).lower()
+            if '0.86' in grating_str or 'high' in grating_str:
+                grating = '0.86-high'
+            elif '2' in grating_str and 'low' in grating_str:  # Match "2-low" or "2.0-low"
+                grating = '2.0-low'
+            elif '1.18' in grating_str or 'ctr' in grating_str or 'center' in grating_str:
+                grating = '1.18-ctr'
+            # else: keep default_grating
         
         # Try to extract arm info
         arm_keyword = header.get('ARM', header.get('FILTER', ''))
-        if 'red' in str(arm_keyword).lower():
-            arm = 'Red'
-        else:
-            arm = 'Blue'
+        if arm_keyword and str(arm_keyword).strip() and str(arm_keyword).lower() not in ['none', 'empty', 'empty1']:
+            # Only override default if header has meaningful value
+            if 'red' in str(arm_keyword).lower():
+                arm = 'Red'
+            elif 'blue' in str(arm_keyword).lower():
+                arm = 'Blue'
+            # else: keep default_arm
     
     return template_lamp, grating, arm
 

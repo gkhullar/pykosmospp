@@ -790,7 +790,7 @@ class WavelengthSolution:
         from datetime import datetime
         self.timestamp = datetime.utcnow().isoformat()
         
-    def wavelength(self, pixels: np.ndarray) -> np.ndarray:
+    def wavelength(self, pixels: np.ndarray, max_wavelength: float = 10000.0) -> np.ndarray:
         """
         Evaluate wavelength at pixel positions.
         
@@ -798,21 +798,43 @@ class WavelengthSolution:
         ----------
         pixels : np.ndarray
             Pixel positions
+        max_wavelength : float, optional
+            Maximum allowed wavelength in Angstroms (default: 10000.0)
+            Limits polynomial extrapolation to optical range.
+            Ground-based non-IR spectrographs don't capture >10000 Å.
             
         Returns
         -------
         np.ndarray
-            Wavelengths in Angstroms
+            Wavelengths in Angstroms (clipped to max_wavelength)
         """
-        if self.poly_type == 'chebyshev':
-            from numpy.polynomial import chebyshev
-            # Normalize pixels to [-1, 1] using same range as fitting
+        if self.poly_type == 'pchip':
+            # Monotonic spline interpolator (stored as coefficients)
+            from scipy.interpolate import PchipInterpolator
+            wavelengths = self.coefficients(pixels)
+        elif self.poly_type == 'spline':
+            # UnivariateSpline or PCHIP (both stored as callable)
+            # Clip pixels to safe extrapolation range
             pix_min, pix_max = self.pixel_range
-            pix_norm = 2.0 * (pixels - pix_min) / (pix_max - pix_min) - 1.0
-            return chebyshev.chebval(pix_norm, self.coefficients)
+            pixels_clipped = np.clip(pixels, pix_min, pix_max)
+            wavelengths = self.coefficients(pixels_clipped)
+        elif self.poly_type == 'chebyshev':
+            from numpy.polynomial import chebyshev
+            # Clip pixels to safe extrapolation range FIRST
+            pix_min, pix_max = self.pixel_range
+            pixels_clipped = np.clip(pixels, pix_min, pix_max)
+            # Normalize clipped pixels to [-1, 1] using same range as fitting
+            pix_norm = 2.0 * (pixels_clipped - pix_min) / (pix_max - pix_min) - 1.0
+            wavelengths = chebyshev.chebval(pix_norm, self.coefficients)
         else:
-            # Standard polynomial
-            return np.polyval(self.coefficients, pixels)
+            # Standard polynomial - also apply safe extrapolation limit
+            pix_min, pix_max = self.pixel_range
+            pixels_clipped = np.clip(pixels, pix_min, pix_max)
+            wavelengths = np.polyval(self.coefficients, pixels_clipped)
+        
+        # Clip to physical range (optical spectrograph limit)
+        # Note: For PCHIP, extrapolation is already monotonic, but clipping prevents unphysical values
+        return np.clip(wavelengths, self.wavelength_range[0], max_wavelength)
     
     def inverse(self, wavelengths: np.ndarray) -> np.ndarray:
         """
