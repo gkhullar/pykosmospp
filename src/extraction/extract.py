@@ -43,10 +43,9 @@ def extract_optimal(data_2d: np.ndarray,
         Extracted 1D spectrum with wavelength axis if available
         
     References
-    ----------
-    Horne, K. 1986, PASP, 98, 609
-    \"An Optimal Extraction Algorithm for CCD Spectroscopy\"
-    \"\"\"
+    ----------    Horne, K. 1986, PASP, 98, 609
+    "An Optimal Extraction Algorithm for CCD Spectroscopy"
+    """
     ny_spectral, nx_spatial = data_2d.shape
     
     # Check if trace has fitted spatial profile
