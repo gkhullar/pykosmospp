@@ -1,12 +1,172 @@
 """
-Arc line matching to reference catalogs.
+Arc line matching to reference catalogs and arc template loading.
 
 Per tasks.md T033: Load pyKOSMOS linelists and match detected lines.
+Supports both discrete line matching and DTW (Dynamic Time Warping) with arc templates.
 """
 
 from typing import List, Tuple, Dict, Optional
 from pathlib import Path
 import numpy as np
+
+
+def load_arc_template(lamp_type: str, 
+                     grating: str = '1.18-ctr',
+                     arm: str = 'Blue',
+                     resources_dir: Path = None) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Load arc template spectrum for DTW wavelength calibration.
+    
+    Arc templates are pre-calibrated wavelength spectra from pyKOSMOS resources,
+    used for automatic wavelength identification via Dynamic Time Warping (DTW).
+    This approach is more robust than discrete line matching and doesn't require
+    an initial dispersion guess.
+    
+    Parameters
+    ----------
+    lamp_type : str
+        Arc lamp type. Supported: 'Ar' (Argon), 'Kr' (Krypton), 'Ne' (Neon)
+    grating : str, optional
+        Grating setting (default: '1.18-ctr')
+        Options: '0.86-high', '1.18-ctr', '2.0-low'
+    arm : str, optional
+        Spectrograph arm (default: 'Blue')
+        Options: 'Blue', 'Red'
+    resources_dir : Path, optional
+        Path to resources directory. If None, uses package default.
+        
+    Returns
+    -------
+    wavelengths : np.ndarray
+        Template wavelengths in Angstroms
+    flux : np.ndarray
+        Template flux values (normalized)
+        
+    Raises
+    ------
+    FileNotFoundError
+        If template file not found
+    ValueError
+        If lamp type, grating, or arm unknown
+        
+    Examples
+    --------
+    >>> waves, flux = load_arc_template('Ar', grating='1.18-ctr', arm='Blue')
+    >>> print(f"Template covers {waves[0]:.1f}-{waves[-1]:.1f} Å")
+    """
+    if resources_dir is None:
+        resources_dir = Path(__file__).parent.parent.parent / 'resources' / 'pykosmos_reference'
+    
+    templates_dir = resources_dir / 'arctemplates'
+    
+    # Validate lamp type
+    valid_lamps = ['Ar', 'Kr', 'Ne']
+    if lamp_type not in valid_lamps:
+        raise ValueError(f"Unknown lamp type: {lamp_type}. Must be one of {valid_lamps}")
+    
+    # Validate grating
+    valid_gratings = ['0.86-high', '1.18-ctr', '2.0-low']
+    if grating not in valid_gratings:
+        raise ValueError(f"Unknown grating: {grating}. Must be one of {valid_gratings}")
+    
+    # Validate arm
+    valid_arms = ['Blue', 'Red']
+    if arm not in valid_arms:
+        raise ValueError(f"Unknown arm: {arm}. Must be one of {valid_arms}")
+    
+    # Construct filename: e.g., ArBlue1.18-ctr.spec
+    filename = f"{lamp_type}{arm}{grating}.spec"
+    filepath = templates_dir / filename
+    
+    if not filepath.exists():
+        raise FileNotFoundError(
+            f"Arc template not found: {filepath}\n"
+            f"Available templates for lamp={lamp_type}: "
+            f"{list(templates_dir.glob(f'{lamp_type}*.spec'))}"
+        )
+    
+    # Load CSV format: wave,flux
+    try:
+        data = np.loadtxt(filepath, delimiter=',', skiprows=1)  # Skip header
+        wavelengths = data[:, 0]
+        flux = data[:, 1]
+        
+        # Sort by wavelength (templates may be in descending order)
+        sort_idx = np.argsort(wavelengths)
+        wavelengths = wavelengths[sort_idx]
+        flux = flux[sort_idx]
+        
+        return wavelengths, flux
+    except Exception as e:
+        raise ValueError(f"Failed to load arc template {filepath}: {e}")
+
+
+def get_arc_template_name(lamp_type: str, header: Dict = None) -> Tuple[str, str, str]:
+    """
+    Automatically select appropriate arc template based on observation metadata.
+    
+    Parameters
+    ----------
+    lamp_type : str
+        Lamp type keyword (e.g., 'argon', 'henear', 'cuar')
+    header : dict, optional
+        FITS header with grating/arm information
+        
+    Returns
+    -------
+    template_lamp : str
+        Template lamp type ('Ar', 'Kr', or 'Ne')
+    grating : str
+        Grating setting ('0.86-high', '1.18-ctr', or '2.0-low')
+    arm : str
+        Spectrograph arm ('Blue' or 'Red')
+        
+    Notes
+    -----
+    - If header unavailable, uses default: '1.18-ctr', 'Blue'
+    - Lamp type mapping:
+        * 'argon', 'ar' -> 'Ar'
+        * 'krypton', 'kr' -> 'Kr'
+        * 'neon', 'ne' -> 'Ne'
+        * 'henear', 'apohenear' -> 'Ar' (Argon has strongest lines)
+    """
+    # Map lamp keywords to template lamp types
+    lamp_map = {
+        'argon': 'Ar',
+        'ar': 'Ar',
+        'krypton': 'Kr',
+        'kr': 'Kr',
+        'neon': 'Ne',
+        'ne': 'Ne',
+        'henear': 'Ar',  # Use Argon template for He-Ne-Ar
+        'apohenear': 'Ar',
+        'henearhres': 'Ar',
+    }
+    
+    template_lamp = lamp_map.get(lamp_type.lower(), 'Ar')  # Default to Argon
+    
+    # Extract grating and arm from header if available
+    grating = '1.18-ctr'  # Default
+    arm = 'Blue'  # Default
+    
+    if header is not None:
+        # Try to extract grating info from header
+        grating_keyword = header.get('GRATING', header.get('GRISM', ''))
+        if '0.86' in str(grating_keyword) or 'high' in str(grating_keyword).lower():
+            grating = '0.86-high'
+        elif '2.0' in str(grating_keyword) or 'low' in str(grating_keyword).lower():
+            grating = '2.0-low'
+        else:
+            grating = '1.18-ctr'
+        
+        # Try to extract arm info
+        arm_keyword = header.get('ARM', header.get('FILTER', ''))
+        if 'red' in str(arm_keyword).lower():
+            arm = 'Red'
+        else:
+            arm = 'Blue'
+    
+    return template_lamp, grating, arm
 
 
 def load_linelist(lamp_type: str, resources_dir: Path = None) -> Tuple[np.ndarray, np.ndarray]:

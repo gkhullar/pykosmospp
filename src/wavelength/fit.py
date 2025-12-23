@@ -15,14 +15,15 @@ from ..models import WavelengthSolution, ArcFrame
 
 def fit_wavelength_solution(pixels: np.ndarray,
                             wavelengths: np.ndarray,
-                            arc_frame: ArcFrame,
+                            arc_frame: Optional[ArcFrame] = None,
                             poly_type: str = 'chebyshev',
                             order: Optional[int] = None,
                             sigma_clip: float = 3.0,
                             max_iterations: int = 5,
                             min_order: int = 3,
                             max_order: int = 7,
-                            use_bic: bool = True) -> WavelengthSolution:
+                            use_bic: bool = True,
+                            order_range: Optional[Tuple[int, int]] = None) -> WavelengthSolution:
     """
     Fit wavelength solution with robust fitting and BIC order selection.
     
@@ -36,8 +37,8 @@ def fit_wavelength_solution(pixels: np.ndarray,
         Pixel positions of matched arc lines
     wavelengths : np.ndarray
         Catalog wavelengths of matched lines (Angstroms)
-    arc_frame : ArcFrame
-        Source arc frame
+    arc_frame : ArcFrame, optional
+        Source arc frame (if None, creates minimal solution without frame reference)
     poly_type : str, optional
         Polynomial type (default: 'chebyshev')
     order : int, optional
@@ -52,6 +53,8 @@ def fit_wavelength_solution(pixels: np.ndarray,
         Maximum order for BIC selection (default: 7)
     use_bic : bool, optional
         Use BIC for order selection (default: True)
+    order_range : tuple of (int, int), optional
+        Alternative way to specify (min_order, max_order). Overrides individual parameters.
         
     Returns
     -------
@@ -63,6 +66,10 @@ def fit_wavelength_solution(pixels: np.ndarray,
     ValueError
         If fit fails or RMS exceeds threshold
     """
+    # Support order_range parameter for backwards compatibility
+    if order_range is not None:
+        min_order, max_order = order_range
+    
     if len(pixels) < 10:
         raise ValueError(f"Need at least 10 matched lines, got {len(pixels)}")
     
