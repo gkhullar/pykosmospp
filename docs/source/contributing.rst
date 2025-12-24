@@ -584,7 +584,7 @@ Questions?
 ==========
 
 * **GitHub Discussions:** https://github.com/gkhullar/pykosmospp/discussions
-* **Email:** gkhullar@astro.washington.edu
+* **Email:** gkhullar@uw.edu
 
 We're happy to help new contributors get started!
 
