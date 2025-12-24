@@ -574,14 +574,6 @@ Code of Conduct
 
 We follow the `Astropy Code of Conduct <https://www.astropy.org/code_of_conduct.html>`_.
 
-Summary:
-
-* Be respectful and inclusive
-* Harassment and discrimination not tolerated
-* Assume good faith
-* Focus on what is best for the community
-
-
 License
 =======
 
@@ -592,7 +584,7 @@ Questions?
 ==========
 
 * **GitHub Discussions:** https://github.com/gkhullar/pykosmospp/discussions
-* **Email:** gk@astro.washington.edu
+* **Email:** gkhullar@astro.washington.edu
 
 We're happy to help new contributors get started!
 
